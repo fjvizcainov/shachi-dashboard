@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-18T23:05:00.477623+00:00",
+  "generated_at": "2026-02-18T23:10:01.220781+00:00",
   "predictions": [
     {
       "id": "setup_20260217_000714",
@@ -28671,14 +28671,14 @@
       "predicted_direction": null,
       "current_price": 66389.0,
       "predicted_close": 66381.51936287552,
-      "actual_close": null,
+      "actual_close": 66303.6,
       "entry_price": 66388.98800000001,
       "confidence": 0.5631959728787784,
-      "deviation": null,
-      "deviation_pct": null,
-      "direction_correct": null,
-      "outcome": "PENDING",
-      "pnl_pct": 0,
+      "deviation": -77.91936287551653,
+      "deviation_pct": -0.11751905307632847,
+      "direction_correct": true,
+      "outcome": "HIT_TP1",
+      "pnl_pct": 0.15000000000000271,
       "reason": null,
       "indicators": {
         "momentum_1h": 0.30023962957601724,
@@ -28716,235 +28716,288 @@
         "long_short_ratio": 2.6193,
         "open_interest": 80169.01
       }
+    },
+    {
+      "id": "setup_20260218_230525",
+      "timestamp": "2026-02-18T23:05:25.031092+00:00",
+      "direction": "SHORT",
+      "predicted_direction": null,
+      "current_price": 66278.9,
+      "predicted_close": 66268.4612854289,
+      "actual_close": null,
+      "entry_price": 66278.88500000001,
+      "confidence": 0.4214985988348282,
+      "deviation": null,
+      "deviation_pct": null,
+      "direction_correct": null,
+      "outcome": "PENDING",
+      "pnl_pct": 0,
+      "reason": null,
+      "indicators": {
+        "momentum_1h": 0.15310422904345364,
+        "momentum_15m": 0.03087929004800387,
+        "rsi_1h": 23.485077216972428,
+        "rsi_15m": 54.88075476811581,
+        "zscore": -1.4126131489025782,
+        "orderbook_imbalance": 0.18935771572974627,
+        "funding_rate": 3.604e-05,
+        "funding_sentiment": "neutral",
+        "volume_ratio": 0.0609694128407182,
+        "volume_trend": "decreasing",
+        "buy_volume_pct": 0.42857142857142855,
+        "bb_position": -0.7063065744512861,
+        "atr_1h": 576.2464285714274,
+        "atr_15m": 208.09571428571508,
+        "std_1h": 676.0492076276686,
+        "std_15m": 82.15512708359918,
+        "spread": 0.00999999999476131,
+        "spread_pct": 1.5087757936177744e-05,
+        "volatility_regime": "normal",
+        "price_structure": "ranging",
+        "ema_trend": "bearish",
+        "macd_histogram": -552.9279440230131,
+        "macd_line": -422.36245101556415,
+        "macd_trend": "bearish",
+        "vwap_deviation": -1.337017597394903,
+        "vwap_trend": "below",
+        "adx": 50.969943927837335,
+        "plus_di": 12.215260088379951,
+        "minus_di": 37.612380615932004,
+        "mtf_confluence": -1.0,
+        "mtf_aligned": true,
+        "fear_greed_index": 8,
+        "long_short_ratio": 2.6232,
+        "open_interest": 80213.648
+      }
     }
   ],
   "statistics": {
-    "total_predictions": 550,
-    "total_trades": 420,
+    "total_predictions": 551,
+    "total_trades": 421,
     "no_trade_count": 130,
     "no_trade_evaluated": 116,
-    "total_evaluated": 535,
-    "trades_evaluated": 419,
+    "total_evaluated": 536,
+    "trades_evaluated": 420,
     "pending": 1,
     "direction_accuracy": 59.3,
     "avg_deviation_pct": 0.14,
     "outcomes": {
       "NOT_TRIGGERED": 178,
       "UNRESOLVED": 164,
-      "HIT_TP1": 31,
+      "HIT_TP1": 32,
       "HIT_SL": 46
     },
-    "total_pnl_pct": -4.41,
-    "win_rate": 42.7,
-    "rolling_pnl_pct": 0.66,
+    "total_pnl_pct": -4.26,
+    "win_rate": 43.0,
+    "rolling_pnl_pct": 0.73,
     "rolling_win_rate": 58.1,
     "rolling_window": 50,
     "rolling_trades_count": 50
   },
   "calibration": {
-    "bias": 27.04718830084885,
+    "bias": 21.798860742030577,
     "buffer_scale": 0.6764050361457914,
-    "sl_scale": 1.3530028054852221,
+    "sl_scale": 1.346237791457796,
     "tp_scale": 0.96
   },
   "learned_weights": {
-    "momentum_1h": 0.5592,
-    "momentum_15m": 0.6269,
-    "ema_trend": 0.6127,
-    "price_structure": 0.5562,
-    "zscore": 0.6379,
-    "rsi": 0.6182,
-    "orderbook": 0.6786,
-    "funding": 0.525,
-    "volume_confirm": 0.6452,
-    "volume_trend": 0.5451,
-    "bollinger": 0.6361,
-    "macd": 0.6282,
-    "rsi_divergence": 0.5234,
-    "vwap": 0.6428,
-    "support_resistance": 0.5811,
-    "mtf_confluence": 0.5875,
-    "candle_pattern": 0.5814,
-    "fear_greed": 0.5262,
-    "long_short_ratio": 0.6816,
-    "adx": 0.6203,
-    "trading_session": 0.5545,
-    "macd_divergence": 0.5234,
-    "open_interest": 0.5883,
-    "session_volatility": 0.5681
+    "momentum_1h": 0.5796,
+    "momentum_15m": 0.65,
+    "ema_trend": 0.6349,
+    "price_structure": 0.5762,
+    "zscore": 0.661,
+    "rsi": 0.6399,
+    "orderbook": 0.7033,
+    "funding": 0.544,
+    "volume_confirm": 0.6686,
+    "volume_trend": 0.5648,
+    "bollinger": 0.6591,
+    "macd": 0.6508,
+    "rsi_divergence": 0.5424,
+    "vwap": 0.6658,
+    "support_resistance": 0.6014,
+    "mtf_confluence": 0.6087,
+    "candle_pattern": 0.6025,
+    "fear_greed": 0.5453,
+    "long_short_ratio": 0.705,
+    "adx": 0.6415,
+    "trading_session": 0.5745,
+    "macd_divergence": 0.5424,
+    "open_interest": 0.6092,
+    "session_volatility": 0.5886
   },
   "learned_correlations": {
-    "momentum_1h": -0.0335,
-    "momentum_15m": -0.0998,
-    "ema_trend": -0.086,
+    "momentum_1h": -0.0347,
+    "momentum_15m": -0.1008,
+    "ema_trend": -0.0851,
     "price_structure": -0.0306,
-    "zscore": -0.1104,
-    "rsi": -0.0908,
-    "orderbook": 0.1468,
-    "funding": -0.0008,
-    "volume_confirm": -0.1177,
-    "volume_trend": -0.0224,
-    "bollinger": -0.1088,
-    "macd": -0.1014,
+    "zscore": -0.109,
+    "rsi": -0.0866,
+    "orderbook": 0.1489,
+    "funding": -0.0014,
+    "volume_confirm": -0.1164,
+    "volume_trend": -0.0206,
+    "bollinger": -0.1073,
+    "macd": -0.0992,
     "rsi_divergence": 0.0,
-    "vwap": -0.1152,
-    "support_resistance": -0.0565,
-    "mtf_confluence": -0.0627,
-    "candle_pattern": -0.0576,
-    "fear_greed": 0.0016,
-    "long_short_ratio": 0.1487,
-    "adx": 0.0916,
-    "trading_session": -0.032,
+    "vwap": -0.1123,
+    "support_resistance": -0.0514,
+    "mtf_confluence": -0.0609,
+    "candle_pattern": -0.0556,
+    "fear_greed": 0.0026,
+    "long_short_ratio": 0.1441,
+    "adx": 0.0857,
+    "trading_session": -0.029,
     "macd_divergence": 0.0,
-    "open_interest": -0.0579,
-    "session_volatility": -0.0447
+    "open_interest": -0.0595,
+    "session_volatility": -0.0424
   },
   "cumulative_stats": {
-    "total_setups": 536,
-    "triggered": 241,
+    "total_setups": 537,
+    "triggered": 242,
     "not_triggered": 179,
-    "wins": 31,
+    "wins": 32,
     "losses": 46,
     "unresolved": 164,
-    "mae_close": 72.73763652494934,
-    "hit_rate_direction": 0.46,
+    "mae_close": 72.20679361037386,
+    "hit_rate_direction": 0.48,
     "avg_rr_achieved": 1.317535876857226,
-    "win_rate": 0.12863070539419086,
+    "win_rate": 0.1322314049586777,
     "no_trade_evaluated": 116
   },
   "correlations": {
     "vwap_deviation": {
       "name": "VWAP Deviation %",
-      "correlation": -0.1364,
+      "correlation": -0.1347,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
+      "samples": 536
     },
     "zscore": {
       "name": "Z-Score vs MA",
-      "correlation": -0.127,
+      "correlation": -0.1262,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
+      "samples": 536
     },
     "bb_position": {
       "name": "Bollinger Position",
-      "correlation": -0.1225,
+      "correlation": -0.1216,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
+      "samples": 536
     },
     "orderbook_imbalance": {
       "name": "Order Book Imbalance",
-      "correlation": 0.1136,
+      "correlation": 0.1149,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     },
     "rsi_15m": {
       "name": "RSI 15m",
-      "correlation": -0.1072,
+      "correlation": -0.1081,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
+      "samples": 536
     },
     "momentum_1h": {
       "name": "Momentum 1H",
-      "correlation": -0.0961,
+      "correlation": -0.0969,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
-    },
-    "rsi_1h": {
-      "name": "RSI 1H",
-      "correlation": -0.0901,
-      "strength": "weak",
-      "direction": "negative",
-      "samples": 535
+      "samples": 536
     },
     "mtf_confluence": {
       "name": "MTF Confluence",
-      "correlation": -0.0897,
+      "correlation": -0.0886,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
+      "samples": 536
+    },
+    "rsi_1h": {
+      "name": "RSI 1H",
+      "correlation": -0.0878,
+      "strength": "weak",
+      "direction": "negative",
+      "samples": 536
     },
     "macd_histogram": {
       "name": "MACD Histogram",
-      "correlation": -0.0894,
+      "correlation": -0.0878,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
+      "samples": 536
     },
     "std_1h": {
       "name": "Volatility (STD)",
-      "correlation": 0.0849,
+      "correlation": 0.0814,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     },
     "buy_volume_pct": {
       "name": "Buy Volume %",
-      "correlation": -0.0811,
+      "correlation": -0.0803,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
+      "samples": 536
     },
     "adx": {
       "name": "ADX (Trend Strength)",
-      "correlation": 0.0602,
+      "correlation": 0.058,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     },
     "long_short_ratio": {
       "name": "Long/Short Ratio",
-      "correlation": 0.0594,
+      "correlation": 0.0577,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     },
     "momentum_15m": {
       "name": "Momentum 15m",
-      "correlation": -0.0544,
+      "correlation": -0.0549,
       "strength": "weak",
       "direction": "negative",
-      "samples": 535
+      "samples": 536
     },
     "open_interest": {
       "name": "Open Interest",
-      "correlation": 0.0529,
+      "correlation": 0.052,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     },
     "atr_1h": {
       "name": "ATR 1H",
-      "correlation": 0.0326,
+      "correlation": 0.0319,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     },
     "fear_greed_index": {
       "name": "Fear & Greed Index",
-      "correlation": 0.0304,
+      "correlation": 0.0308,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     },
     "volume_ratio": {
       "name": "Volume Ratio",
-      "correlation": 0.0162,
+      "correlation": 0.0172,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     },
     "funding_rate": {
       "name": "Funding Rate",
-      "correlation": 0.0027,
+      "correlation": 0.0025,
       "strength": "weak",
       "direction": "positive",
-      "samples": 535
+      "samples": 536
     }
   },
   "indicator_series": {
@@ -31697,6 +31750,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 0.30023962957601724,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 0.15310422904345364,
         "price_change": null
       }
     ],
@@ -34449,6 +34507,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 0.17783512934287446,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 0.03087929004800387,
         "price_change": null
       }
     ],
@@ -37201,6 +37264,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 24.14856638832005,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 23.485077216972428,
         "price_change": null
       }
     ],
@@ -39953,6 +40021,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 59.813179002944544,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 54.88075476811581,
         "price_change": null
       }
     ],
@@ -42705,6 +42778,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": -1.2693097101345883,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": -1.4126131489025782,
         "price_change": null
       }
     ],
@@ -45457,6 +45535,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": -0.9939724260915828,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 0.18935771572974627,
         "price_change": null
       }
     ],
@@ -48208,6 +48291,11 @@
       },
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
+        "value": 3.604e-05,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
         "value": 3.604e-05,
         "price_change": null
       }
@@ -50961,6 +51049,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 0.006500526377021402,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 0.0609694128407182,
         "price_change": null
       }
     ],
@@ -53712,6 +53805,11 @@
       },
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
+        "value": 0.42857142857142855,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
         "value": 0.42857142857142855,
         "price_change": null
       }
@@ -56465,6 +56563,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": -0.6346548550672941,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": -0.7063065744512861,
         "price_change": null
       }
     ],
@@ -59217,6 +59320,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 568.1135714285701,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 576.2464285714274,
         "price_change": null
       }
     ],
@@ -61969,6 +62077,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 669.4697859909356,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 676.0492076276686,
         "price_change": null
       }
     ],
@@ -64721,6 +64834,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": -545.160536615611,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": -552.9279440230131,
         "price_change": null
       }
     ],
@@ -67473,6 +67591,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": -1.1958158305894544,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": -1.337017597394903,
         "price_change": null
       }
     ],
@@ -70225,6 +70348,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 50.96994392783733,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 50.969943927837335,
         "price_change": null
       }
     ],
@@ -72976,6 +73104,11 @@
       },
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
+        "value": -1.0,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
         "value": -1.0,
         "price_change": null
       }
@@ -75729,6 +75862,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 8,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 8,
         "price_change": null
       }
     ],
@@ -78481,6 +78619,11 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 2.6193,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 2.6232,
         "price_change": null
       }
     ],
@@ -81233,37 +81376,42 @@
       {
         "timestamp": "2026-02-18T23:00:25.523140+00:00",
         "value": 80169.01,
+        "price_change": -0.12863576797360132
+      },
+      {
+        "timestamp": "2026-02-18T23:05:25.031092+00:00",
+        "value": 80213.648,
         "price_change": null
       }
     ]
   },
   "pro_indicators": {
     "macd": {
-      "line": -414.5950436081621,
+      "line": -422.36245101556415,
       "signal": 130.56549300744894,
-      "histogram": -545.160536615611,
+      "histogram": -552.9279440230131,
       "trend": "bearish"
     },
     "vwap": {
-      "value": 67179.16913942774,
-      "deviation": -1.1958158305894544,
+      "value": 67176.62327451597,
+      "deviation": -1.337017597394903,
       "trend": "below"
     },
     "support_resistance": {
-      "pivot": 66907.34999999999,
-      "s1": 65338.47999999998,
-      "s2": 64301.12999999999,
-      "r1": 67944.69999999998,
-      "r2": 69513.56999999999,
+      "pivot": 66874.89333333333,
+      "s1": 65273.56666666665,
+      "s2": 64268.673333333325,
+      "r1": 67879.78666666665,
+      "r2": 69481.11333333333,
       "nearest_support": 65870.0,
-      "nearest_resistance": 67944.69999999998,
+      "nearest_resistance": 67879.78666666665,
       "swing_high": 68476.22,
       "swing_low": 65870.0
     },
     "adx": {
-      "value": 50.96994392783733,
-      "plus_di": 12.390128231402532,
-      "minus_di": 38.15082245878914,
+      "value": 50.969943927837335,
+      "plus_di": 12.215260088379951,
+      "minus_di": 37.612380615932004,
       "trend_strength": "very_strong"
     },
     "mtf": {
@@ -81274,10 +81422,10 @@
       "aligned": true
     },
     "candle_pattern": {
-      "pattern": "none",
-      "strength": 0.0,
-      "bias": "neutral",
-      "description": "No pattern detected"
+      "pattern": "evening_star",
+      "strength": 0.9,
+      "bias": "bearish",
+      "description": "Strong bearish reversal (3-candle)"
     },
     "session": {
       "current": "off_hours",
@@ -81288,15 +81436,15 @@
       "label": "extreme_fear"
     },
     "positioning": {
-      "long_short_ratio": 2.6193,
-      "long_account_pct": 72.37,
-      "short_account_pct": 27.63,
-      "open_interest": 80169.01
+      "long_short_ratio": 2.6232,
+      "long_account_pct": 72.39999999999999,
+      "short_account_pct": 27.6,
+      "open_interest": 80213.648
     },
     "divergences": {
       "rsi": "none",
       "macd": "none"
     }
   },
-  "current_price": 66389.0
+  "current_price": 66278.9
 }
