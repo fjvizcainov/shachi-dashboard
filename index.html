@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Shachi BTC Dashboard</title>
+    <link rel="icon" type="image/png" href="https://shachi.mx/assets/shachi-logo-DJDvd-OT.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a1929 0%, #0d2137 50%, #0f2744 100%);
+            color: #e3f2fd;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header .logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #4fc3f7, #29b6f6, #03a9f4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #64b5f6;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(79, 195, 247, 0.08);
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            color: #90caf9;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+
+        .tab-btn:hover {
+            background: rgba(79, 195, 247, 0.15);
+            color: #4fc3f7;
+            border-color: rgba(79, 195, 247, 0.4);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #0288d1, #03a9f4, #29b6f6);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(3, 169, 244, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, rgba(13, 33, 55, 0.9), rgba(10, 25, 41, 0.95));
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(79, 195, 247, 0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(3, 169, 244, 0.25);
+            border-color: rgba(79, 195, 247, 0.3);
+        }
+
+        .stat-card .value {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            color: #90caf9;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card.positive .value { color: #4caf50; }
+        .stat-card.negative .value { color: #f44336; }
+        .stat-card.neutral .value { color: #29b6f6; }
+
+        .chart-card {
+            background: linear-gradient(145deg, rgba(13, 33, 55, 0.9), rgba(10, 25, 41, 0.95));
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(79, 195, 247, 0.15);
+            margin-bottom: 30px;
+        }
+
+        .chart-card h2 {
+            margin-bottom: 20px;
+            color: #4fc3f7;
+            font-size: 1.3em;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .chart-wrapper.small {
+            height: 250px;
+        }
+
+        .two-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .three-charts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .three-charts {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .two-charts, .three-charts {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Correlation Section */
+        .correlation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .correlation-item {
+            background: rgba(13, 33, 55, 0.6);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid rgba(79, 195, 247, 0.1);
+        }
+
+        .correlation-bar-container {
+            flex: 1;
+            height: 8px;
+            background: rgba(79, 195, 247, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .correlation-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .correlation-bar.positive {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+        }
+
+        .correlation-bar.negative {
+            background: linear-gradient(90deg, #f44336, #e57373);
+        }
+
+        .correlation-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            min-width: 70px;
+            text-align: right;
+        }
+
+        .correlation-value.positive { color: #4caf50; }
+        .correlation-value.negative { color: #f44336; }
+
+        .correlation-name {
+            min-width: 150px;
+            color: #b3e5fc;
+        }
+
+        .correlation-strength {
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .correlation-strength.strong { background: rgba(76, 175, 80, 0.2); color: #81c784; }
+        .correlation-strength.moderate { background: rgba(255, 183, 77, 0.2); color: #ffb74d; }
+        .correlation-strength.weak { background: rgba(144, 202, 249, 0.15); color: #90caf9; }
+
+        /* Indicator Cards */
+        .indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .indicator-card {
+            background: rgba(13, 33, 55, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(79, 195, 247, 0.1);
+        }
+
+        .indicator-card h3 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            font-size: 1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .indicator-card .corr-badge {
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        .indicator-card .corr-badge.positive { background: rgba(76, 175, 80, 0.2); color: #81c784; }
+        .indicator-card .corr-badge.negative { background: rgba(244, 67, 54, 0.2); color: #e57373; }
+
+        /* Table Styles */
+        .table-card {
+            background: linear-gradient(145deg, rgba(13, 33, 55, 0.9), rgba(10, 25, 41, 0.95));
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(79, 195, 247, 0.15);
+            overflow-x: auto;
+            margin-top: 30px;
+        }
+
+        .table-card h2 {
+            margin-bottom: 20px;
+            color: #4fc3f7;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.1);
+        }
+
+        th {
+            background: rgba(3, 169, 244, 0.15);
+            color: #4fc3f7;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: rgba(79, 195, 247, 0.05);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .badge.long { background: rgba(76, 175, 80, 0.2); color: #81c784; }
+        .badge.short { background: rgba(244, 67, 54, 0.2); color: #e57373; }
+        .badge.correct { background: rgba(76, 175, 80, 0.2); color: #81c784; }
+        .badge.incorrect { background: rgba(244, 67, 54, 0.2); color: #e57373; }
+        .badge.pending { background: rgba(255, 183, 77, 0.2); color: #ffb74d; }
+
+        .refresh-info {
+            text-align: center;
+            color: #64b5f6;
+            font-size: 0.9em;
+            margin-top: 30px;
+            padding: 20px;
+        }
+
+        .calibration-card {
+            background: linear-gradient(145deg, rgba(2, 136, 209, 0.15), rgba(3, 169, 244, 0.1));
+            border: 1px solid rgba(79, 195, 247, 0.3);
+        }
+
+        .calibration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .calibration-item {
+            text-align: center;
+        }
+
+        .calibration-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #29b6f6;
+        }
+
+        .calibration-item .label {
+            color: #90caf9;
+            font-size: 0.8em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #64b5f6;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #f44336;
+        }
+
+        .mini-chart {
+            height: 120px;
+        }
+
+        /* Date/Time Filter Styles */
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px 20px;
+            background: linear-gradient(145deg, rgba(13, 33, 55, 0.8), rgba(10, 25, 41, 0.9));
+            border-radius: 12px;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            flex-wrap: wrap;
+        }
+
+        .filter-bar label {
+            color: #90caf9;
+            font-size: 0.9em;
+        }
+
+        .filter-bar input[type="datetime-local"] {
+            background: rgba(10, 25, 41, 0.8);
+            border: 1px solid rgba(79, 195, 247, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e3f2fd;
+            font-size: 0.9em;
+        }
+
+        .filter-bar input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: #29b6f6;
+            box-shadow: 0 0 10px rgba(41, 182, 246, 0.3);
+        }
+
+        .filter-bar button {
+            background: linear-gradient(135deg, #0288d1, #03a9f4);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .filter-bar button:hover {
+            background: linear-gradient(135deg, #03a9f4, #29b6f6);
+            box-shadow: 0 4px 15px rgba(3, 169, 244, 0.3);
+        }
+
+        .filter-bar button.secondary {
+            background: rgba(79, 195, 247, 0.15);
+            border: 1px solid rgba(79, 195, 247, 0.3);
+        }
+
+        .filter-bar button.secondary:hover {
+            background: rgba(79, 195, 247, 0.25);
+        }
+
+        .filter-bar .quick-filters {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-bar .quick-filters button {
+            padding: 6px 12px;
+            font-size: 0.8em;
+            background: rgba(79, 195, 247, 0.1);
+            border: 1px solid rgba(79, 195, 247, 0.2);
+        }
+
+        .filter-bar .quick-filters button:hover,
+        .filter-bar .quick-filters button.active {
+            background: rgba(79, 195, 247, 0.25);
+            border-color: #29b6f6;
+        }
+
+        .filter-info {
+            text-align: center;
+            color: #64b5f6;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://shachi.mx/assets/shachi-logo-DJDvd-OT.png" alt="Shachi" class="logo">
+        <h1>Shachi BTC Dashboard</h1>
+        <p class="subtitle">Bitcoin Price Prediction Analytics & Correlation Analysis</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('overview')">📊 Overview</button>
+        <button class="tab-btn" onclick="showTab('pro')">🎯 Pro Indicators</button>
+        <button class="tab-btn" onclick="showTab('correlations')">🔗 Correlaciones</button>
+        <button class="tab-btn" onclick="showTab('indicators')">📈 Indicadores</button>
+        <button class="tab-btn" onclick="showTab('history')">📋 Historial</button>
+    </div>
+
+    <!-- Date/Time Filter -->
+    <div class="filter-bar">
+        <label>Desde:</label>
+        <input type="datetime-local" id="filter-start" onchange="applyFilter()">
+        <label>Hasta:</label>
+        <input type="datetime-local" id="filter-end" onchange="applyFilter()">
+        <button onclick="applyFilter()">Aplicar</button>
+        <button class="secondary" onclick="clearFilter()">Limpiar</button>
+        <div class="quick-filters">
+            <button onclick="setQuickFilter('1h')">1H</button>
+            <button onclick="setQuickFilter('4h')">4H</button>
+            <button onclick="setQuickFilter('12h')">12H</button>
+            <button onclick="setQuickFilter('24h')">24H</button>
+            <button onclick="setQuickFilter('all')" class="active">Todo</button>
+        </div>
+    </div>
+    <div id="filter-info" class="filter-info"></div>
+
+    <div id="app">
+        <div class="loading">Cargando datos...</div>
+    </div>
+
+    <script>
+        let dashboardData = null;
+        let charts = {};
+        let currentTab = 'overview';  // Track current active tab
+        let filterStart = null;  // Filter start datetime
+        let filterEnd = null;    // Filter end datetime
+        let activeQuickFilter = 'all';  // Track active quick filter button
+
+        // Get filtered predictions based on current filter
+        function getFilteredPredictions() {
+            if (!dashboardData || !dashboardData.predictions) return [];
+
+            let predictions = dashboardData.predictions;
+
+            if (filterStart || filterEnd) {
+                predictions = predictions.filter(p => {
+                    const timestamp = new Date(p.timestamp);
+                    if (filterStart && timestamp < filterStart) return false;
+                    if (filterEnd && timestamp > filterEnd) return false;
+                    return true;
+                });
+            }
+
+            return predictions;
+        }
+
+        // Apply date filter
+        function applyFilter() {
+            const startInput = document.getElementById('filter-start').value;
+            const endInput = document.getElementById('filter-end').value;
+
+            filterStart = startInput ? new Date(startInput) : null;
+            filterEnd = endInput ? new Date(endInput) : null;
+
+            // Clear quick filter buttons
+            document.querySelectorAll('.quick-filters button').forEach(btn => btn.classList.remove('active'));
+            activeQuickFilter = 'custom';
+
+            updateFilterInfo();
+            renderDashboard();
+            showTab(currentTab);
+        }
+
+        // Clear filter
+        function clearFilter() {
+            filterStart = null;
+            filterEnd = null;
+            document.getElementById('filter-start').value = '';
+            document.getElementById('filter-end').value = '';
+
+            // Set "Todo" as active
+            document.querySelectorAll('.quick-filters button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.quick-filters button:last-child').classList.add('active');
+            activeQuickFilter = 'all';
+
+            updateFilterInfo();
+            renderDashboard();
+            showTab(currentTab);
+        }
+
+        // Set quick filter (1h, 4h, 12h, 24h, all)
+        function setQuickFilter(period) {
+            const now = new Date();
+
+            // Update button states
+            document.querySelectorAll('.quick-filters button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            activeQuickFilter = period;
+
+            if (period === 'all') {
+                filterStart = null;
+                filterEnd = null;
+                document.getElementById('filter-start').value = '';
+                document.getElementById('filter-end').value = '';
+            } else {
+                const hours = parseInt(period);
+                filterStart = new Date(now.getTime() - hours * 60 * 60 * 1000);
+                filterEnd = null;  // Up to now
+
+                // Update input fields
+                document.getElementById('filter-start').value = filterStart.toISOString().slice(0, 16);
+                document.getElementById('filter-end').value = '';
+            }
+
+            updateFilterInfo();
+            renderDashboard();
+            showTab(currentTab);
+        }
+
+        // Update filter info display
+        function updateFilterInfo() {
+            const infoEl = document.getElementById('filter-info');
+            const filtered = getFilteredPredictions();
+            const total = dashboardData ? dashboardData.predictions.length : 0;
+
+            if (filterStart || filterEnd) {
+                let rangeText = '';
+                if (filterStart && filterEnd) {
+                    rangeText = `${filterStart.toLocaleString()} - ${filterEnd.toLocaleString()}`;
+                } else if (filterStart) {
+                    rangeText = `Desde ${filterStart.toLocaleString()}`;
+                } else if (filterEnd) {
+                    rangeText = `Hasta ${filterEnd.toLocaleString()}`;
+                }
+                infoEl.innerHTML = `Filtro activo: ${rangeText} | Mostrando ${filtered.length} de ${total} predicciones`;
+            } else {
+                infoEl.innerHTML = '';
+            }
+        }
+
+        function showTab(tabName) {
+            currentTab = tabName;  // Save current tab
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            // Render charts for the active tab
+            setTimeout(() => {
+                if (tabName === 'overview') renderOverviewCharts();
+                if (tabName === 'correlations') renderCorrelationCharts();
+                if (tabName === 'indicators') renderIndicatorCharts();
+            }, 100);
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch('data.json?' + Date.now());
+                dashboardData = await response.json();
+                renderDashboard();
+
+                // Restore the current tab after rendering
+                showTab(currentTab);
+            } catch (error) {
+                document.getElementById('app').innerHTML = `
+                    <div class="error">
+                        Error cargando datos. Ejecuta: <code>python3 dashboard/generate_data.py</code>
+                    </div>
+                `;
+            }
+        }
+
+        function renderLearnedWeights(weights, correlations) {
+            const indicatorNames = {
+                'momentum_1h': 'Momentum 1H',
+                'momentum_15m': 'Momentum 15m',
+                'ema_trend': 'EMA Trend',
+                'price_structure': 'Price Structure',
+                'zscore': 'Z-Score',
+                'rsi': 'RSI',
+                'orderbook': 'Order Book',
+                'funding': 'Funding Rate',
+                'volume_confirm': 'Volume Confirm',
+                'volume_trend': 'Volume Trend',
+                'bollinger': 'Bollinger'
+            };
+
+            return Object.entries(weights).map(([key, weight]) => {
+                const corr = correlations[key] || 0;
+                const weightClass = weight > 1.05 ? 'positive' : weight < 0.95 ? 'negative' : '';
+                const corrClass = corr >= 0 ? 'positive' : 'negative';
+                const weightPct = ((weight - 1) * 100).toFixed(1);
+                const weightSign = weight >= 1 ? '+' : '';
+
+                return `
+                    <div class="correlation-item" style="flex-wrap: wrap;">
+                        <span class="correlation-name">${indicatorNames[key] || key}</span>
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 200px;">
+                            <div class="correlation-bar-container" style="flex: 1;">
+                                <div class="correlation-bar ${weight >= 1 ? 'positive' : 'negative'}"
+                                     style="width: ${Math.min(Math.abs(weight - 1) * 200, 100)}%"></div>
+                            </div>
+                            <span class="correlation-value ${weightClass}" style="min-width: 80px;">
+                                ${weight.toFixed(3)}x
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="color: #90caf9; font-size: 0.8em;">corr:</span>
+                            <span class="correlation-value ${corrClass}" style="min-width: 60px; font-size: 0.9em;">
+                                ${corr >= 0 ? '+' : ''}${corr.toFixed(3)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDashboard() {
+            const stats = dashboardData.statistics;
+            const calibration = dashboardData.calibration;
+            const correlations = dashboardData.correlations || {};
+            const accuracyClass = stats.direction_accuracy >= 60 ? 'positive' : stats.direction_accuracy >= 40 ? 'neutral' : 'negative';
+
+            // Calculate filtered statistics dynamically
+            const filteredPredictions = getFilteredPredictions();
+            const filteredEvaluated = filteredPredictions.filter(p => p.actual_close !== null && p.direction !== 'NO_TRADE');
+            const filteredNoTrade = filteredPredictions.filter(p => p.direction === 'NO_TRADE').length;
+
+            // Calculate Win Rate and P&L from filtered data
+            const filteredWins = filteredEvaluated.filter(p => p.pnl_pct > 0).length;
+            const filteredLosses = filteredEvaluated.filter(p => p.pnl_pct < 0).length;
+            const filteredWinRate = (filteredWins + filteredLosses) > 0
+                ? ((filteredWins / (filteredWins + filteredLosses)) * 100).toFixed(1)
+                : 0;
+            const filteredPnl = filteredEvaluated.reduce((sum, p) => sum + (p.pnl_pct || 0), 0).toFixed(2);
+            const filteredTradesCount = filteredEvaluated.length;
+
+            // Calculate filtered direction accuracy
+            const filteredDirectionCorrect = filteredEvaluated.filter(p => p.direction_correct).length;
+            const filteredDirAccuracy = filteredEvaluated.length > 0
+                ? ((filteredDirectionCorrect / filteredEvaluated.length) * 100).toFixed(1)
+                : 0;
+
+            // Determine label for filtered stats
+            const isFiltered = filterStart || filterEnd;
+            const filterLabel = isFiltered ? 'filtrado' : 'total';
+
+            document.getElementById('app').innerHTML = `
+                <!-- OVERVIEW TAB -->
+                <div id="tab-overview" class="tab-content active">
+                    <div class="stats-grid">
+                        <div class="stat-card neutral">
+                            <div class="value">${filteredPredictions.length}</div>
+                            <div class="label">Trades ${isFiltered ? '(filtrado)' : ''}</div>
+                        </div>
+                        <div class="stat-card" style="background: rgba(97, 97, 97, 0.3);">
+                            <div class="value" style="color: #9e9e9e;">${filteredNoTrade}</div>
+                            <div class="label">No Trade</div>
+                        </div>
+                        <div class="stat-card neutral">
+                            <div class="value">${filteredTradesCount}</div>
+                            <div class="label">Evaluadas</div>
+                        </div>
+                        <div class="stat-card ${filteredDirAccuracy >= 60 ? 'positive' : filteredDirAccuracy >= 40 ? 'neutral' : 'negative'}">
+                            <div class="value">${filteredDirAccuracy}%</div>
+                            <div class="label">Precisión Dir.</div>
+                        </div>
+                        <div class="stat-card ${filteredWinRate >= 50 ? 'positive' : 'negative'}">
+                            <div class="value">${filteredWinRate}%</div>
+                            <div class="label">Win Rate (${filteredTradesCount} ${filterLabel})</div>
+                        </div>
+                        <div class="stat-card ${filteredPnl >= 0 ? 'positive' : 'negative'}">
+                            <div class="value">${filteredPnl >= 0 ? '+' : ''}${filteredPnl}%</div>
+                            <div class="label">P&L (${filteredTradesCount} ${filterLabel})</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card calibration-card">
+                        <h2>⚙️ Estado de Calibración</h2>
+                        <div class="calibration-grid">
+                            <div class="calibration-item">
+                                <div class="value">$${calibration.bias >= 0 ? '+' : ''}${calibration.bias.toFixed(2)}</div>
+                                <div class="label">Bias</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value">${calibration.buffer_scale.toFixed(3)}x</div>
+                                <div class="label">Buffer</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value">${calibration.sl_scale.toFixed(3)}x</div>
+                                <div class="label">SL Scale</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value">${calibration.tp_scale.toFixed(3)}x</div>
+                                <div class="label">TP Scale</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h2>📈 Predicciones vs Cierres Reales</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="two-charts">
+                        <div class="chart-card">
+                            <h2>📊 Desviación por Predicción</h2>
+                            <div class="chart-wrapper small">
+                                <canvas id="deviationChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h2>🎯 Distribución de Outcomes</h2>
+                            <div class="chart-wrapper small">
+                                <canvas id="outcomeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h2>💰 P&L Acumulado</h2>
+                        <div class="chart-wrapper small">
+                            <canvas id="pnlChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRO INDICATORS TAB -->
+                <div id="tab-pro" class="tab-content">
+                    <!-- Current Price & Session -->
+                    <div class="stats-grid" style="margin-bottom: 20px;">
+                        <div class="stat-card neutral">
+                            <div class="value">$${dashboardData.current_price?.toLocaleString() || '-'}</div>
+                            <div class="label">Precio Actual</div>
+                        </div>
+                        <div class="stat-card ${dashboardData.pro_indicators?.session?.current === 'new_york' || dashboardData.pro_indicators?.session?.current === 'overlap_london_ny' ? 'positive' : 'neutral'}">
+                            <div class="value">${dashboardData.pro_indicators?.session?.current?.replace('_', ' ').toUpperCase() || '-'}</div>
+                            <div class="label">Sesión Actual</div>
+                        </div>
+                        <div class="stat-card ${dashboardData.pro_indicators?.fear_greed?.index < 30 ? 'negative' : dashboardData.pro_indicators?.fear_greed?.index > 70 ? 'positive' : 'neutral'}">
+                            <div class="value">${dashboardData.pro_indicators?.fear_greed?.index || '-'}</div>
+                            <div class="label">Fear & Greed</div>
+                        </div>
+                        <div class="stat-card ${dashboardData.pro_indicators?.adx?.trend_strength === 'strong' || dashboardData.pro_indicators?.adx?.trend_strength === 'very_strong' ? 'positive' : 'neutral'}">
+                            <div class="value">${dashboardData.pro_indicators?.adx?.value?.toFixed(1) || '-'}</div>
+                            <div class="label">ADX (Fuerza)</div>
+                        </div>
+                    </div>
+
+                    <!-- MACD Section -->
+                    <div class="chart-card" style="border-left: 4px solid #29b6f6;">
+                        <h2>📊 MACD (Moving Average Convergence Divergence)</h2>
+                        <div class="calibration-grid" style="margin-top: 15px;">
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.macd?.line >= 0 ? '#4caf50' : '#f44336'}">
+                                    ${dashboardData.pro_indicators?.macd?.line?.toFixed(2) || '0'}
+                                </div>
+                                <div class="label">MACD Line</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value">${dashboardData.pro_indicators?.macd?.signal?.toFixed(2) || '0'}</div>
+                                <div class="label">Signal Line</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.macd?.histogram >= 0 ? '#4caf50' : '#f44336'}">
+                                    ${dashboardData.pro_indicators?.macd?.histogram?.toFixed(2) || '0'}
+                                </div>
+                                <div class="label">Histogram</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.macd?.trend === 'bullish' ? '#4caf50' : dashboardData.pro_indicators?.macd?.trend === 'bearish' ? '#f44336' : '#90caf9'}">
+                                    ${dashboardData.pro_indicators?.macd?.trend?.toUpperCase() || 'NEUTRAL'}
+                                </div>
+                                <div class="label">Tendencia</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VWAP Section -->
+                    <div class="chart-card" style="border-left: 4px solid #4caf50;">
+                        <h2>💹 VWAP (Volume Weighted Average Price)</h2>
+                        <div class="calibration-grid" style="margin-top: 15px;">
+                            <div class="calibration-item">
+                                <div class="value">$${dashboardData.pro_indicators?.vwap?.value?.toLocaleString() || '-'}</div>
+                                <div class="label">VWAP</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.vwap?.deviation >= 0 ? '#4caf50' : '#f44336'}">
+                                    ${dashboardData.pro_indicators?.vwap?.deviation >= 0 ? '+' : ''}${dashboardData.pro_indicators?.vwap?.deviation?.toFixed(2) || '0'}%
+                                </div>
+                                <div class="label">Desviación</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.vwap?.trend === 'above' ? '#4caf50' : dashboardData.pro_indicators?.vwap?.trend === 'below' ? '#f44336' : '#90caf9'}">
+                                    ${dashboardData.pro_indicators?.vwap?.trend?.toUpperCase() || 'AT'}
+                                </div>
+                                <div class="label">Posición</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Support/Resistance Section -->
+                    <div class="chart-card" style="border-left: 4px solid #ffb74d;">
+                        <h2>🎯 Soporte & Resistencia</h2>
+                        <div class="two-charts" style="margin-top: 15px;">
+                            <div>
+                                <h4 style="color: #f44336; margin-bottom: 10px;">Resistencias</h4>
+                                <div class="calibration-grid">
+                                    <div class="calibration-item">
+                                        <div class="value" style="color: #f44336;">$${dashboardData.pro_indicators?.support_resistance?.r2?.toLocaleString() || '-'}</div>
+                                        <div class="label">R2</div>
+                                    </div>
+                                    <div class="calibration-item">
+                                        <div class="value" style="color: #f44336;">$${dashboardData.pro_indicators?.support_resistance?.r1?.toLocaleString() || '-'}</div>
+                                        <div class="label">R1</div>
+                                    </div>
+                                    <div class="calibration-item">
+                                        <div class="value" style="color: #ffb74d;">$${dashboardData.pro_indicators?.support_resistance?.pivot?.toLocaleString() || '-'}</div>
+                                        <div class="label">Pivot</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="color: #4caf50; margin-bottom: 10px;">Soportes</h4>
+                                <div class="calibration-grid">
+                                    <div class="calibration-item">
+                                        <div class="value" style="color: #4caf50;">$${dashboardData.pro_indicators?.support_resistance?.s1?.toLocaleString() || '-'}</div>
+                                        <div class="label">S1</div>
+                                    </div>
+                                    <div class="calibration-item">
+                                        <div class="value" style="color: #4caf50;">$${dashboardData.pro_indicators?.support_resistance?.s2?.toLocaleString() || '-'}</div>
+                                        <div class="label">S2</div>
+                                    </div>
+                                    <div class="calibration-item">
+                                        <div class="value">$${dashboardData.pro_indicators?.support_resistance?.swing_low?.toLocaleString() || '-'}</div>
+                                        <div class="label">Swing Low</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Timeframe Section -->
+                    <div class="chart-card" style="border-left: 4px solid #9c27b0;">
+                        <h2>📈 Multi-Timeframe Confluence</h2>
+                        <div class="calibration-grid" style="margin-top: 15px;">
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.mtf?.trend_15m === 'bullish' ? '#4caf50' : dashboardData.pro_indicators?.mtf?.trend_15m === 'bearish' ? '#f44336' : '#90caf9'}">
+                                    ${dashboardData.pro_indicators?.mtf?.trend_15m?.toUpperCase() || 'NEUTRAL'}
+                                </div>
+                                <div class="label">15 Min</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.mtf?.trend_1h === 'bullish' ? '#4caf50' : dashboardData.pro_indicators?.mtf?.trend_1h === 'bearish' ? '#f44336' : '#90caf9'}">
+                                    ${dashboardData.pro_indicators?.mtf?.trend_1h?.toUpperCase() || 'NEUTRAL'}
+                                </div>
+                                <div class="label">1 Hora</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.mtf?.trend_4h === 'bullish' ? '#4caf50' : dashboardData.pro_indicators?.mtf?.trend_4h === 'bearish' ? '#f44336' : '#90caf9'}">
+                                    ${dashboardData.pro_indicators?.mtf?.trend_4h?.toUpperCase() || 'NEUTRAL'}
+                                </div>
+                                <div class="label">4 Horas</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.mtf?.confluence > 0 ? '#4caf50' : dashboardData.pro_indicators?.mtf?.confluence < 0 ? '#f44336' : '#90caf9'}">
+                                    ${(dashboardData.pro_indicators?.mtf?.confluence * 100)?.toFixed(0) || '0'}%
+                                </div>
+                                <div class="label">Confluencia</div>
+                            </div>
+                            <div class="calibration-item">
+                                <div class="value" style="color: ${dashboardData.pro_indicators?.mtf?.aligned ? '#4caf50' : '#f44336'}">
+                                    ${dashboardData.pro_indicators?.mtf?.aligned ? '✓ SÍ' : '✗ NO'}
+                                </div>
+                                <div class="label">Alineado</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADX & Trend Strength -->
+                    <div class="two-charts">
+                        <div class="chart-card" style="border-left: 4px solid #00bcd4;">
+                            <h2>💪 ADX - Fuerza de Tendencia</h2>
+                            <div class="calibration-grid" style="margin-top: 15px;">
+                                <div class="calibration-item">
+                                    <div class="value">${dashboardData.pro_indicators?.adx?.value?.toFixed(1) || '0'}</div>
+                                    <div class="label">ADX</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value" style="color: #4caf50;">${dashboardData.pro_indicators?.adx?.plus_di?.toFixed(1) || '0'}</div>
+                                    <div class="label">+DI</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value" style="color: #f44336;">${dashboardData.pro_indicators?.adx?.minus_di?.toFixed(1) || '0'}</div>
+                                    <div class="label">-DI</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value">${dashboardData.pro_indicators?.adx?.trend_strength?.toUpperCase() || 'WEAK'}</div>
+                                    <div class="label">Fuerza</div>
+                                </div>
+                            </div>
+                            <p style="color: #64b5f6; font-size: 0.85em; margin-top: 15px;">
+                                ADX > 25 = Tendencia fuerte | ADX < 20 = Mercado lateral
+                            </p>
+                        </div>
+
+                        <div class="chart-card" style="border-left: 4px solid #e91e63;">
+                            <h2>🕯️ Patrón de Velas (Detección Avanzada)</h2>
+                            <div class="calibration-grid" style="margin-top: 15px;">
+                                <div class="calibration-item">
+                                    <div class="value" style="text-transform: capitalize; color: ${
+                                        dashboardData.pro_indicators?.candle_pattern?.bias === 'bullish' ? '#4caf50' :
+                                        dashboardData.pro_indicators?.candle_pattern?.bias === 'bearish' ? '#f44336' : '#90caf9'
+                                    }">
+                                        ${dashboardData.pro_indicators?.candle_pattern?.pattern?.replace(/_/g, ' ') || 'None'}
+                                    </div>
+                                    <div class="label">Patrón Detectado</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value">${(dashboardData.pro_indicators?.candle_pattern?.strength * 100)?.toFixed(0) || '0'}%</div>
+                                    <div class="label">Fuerza</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value" style="color: ${
+                                        dashboardData.pro_indicators?.candle_pattern?.bias === 'bullish' ? '#4caf50' :
+                                        dashboardData.pro_indicators?.candle_pattern?.bias === 'bearish' ? '#f44336' : '#90caf9'
+                                    }">
+                                        ${dashboardData.pro_indicators?.candle_pattern?.bias?.toUpperCase() || 'NEUTRAL'}
+                                    </div>
+                                    <div class="label">Sesgo</div>
+                                </div>
+                            </div>
+                            <p style="color: #64b5f6; font-size: 0.85em; margin-top: 15px;">
+                                ${dashboardData.pro_indicators?.candle_pattern?.description || 'Sin patrón significativo'}
+                            </p>
+                            <p style="color: #78909c; font-size: 0.75em; margin-top: 8px;">
+                                25+ patrones detectables: Doji, Hammer, Engulfing, Morning/Evening Star, Three Soldiers/Crows, etc.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Divergences & Sentiment -->
+                    <div class="two-charts">
+                        <div class="chart-card" style="border-left: 4px solid #ff5722;">
+                            <h2>🔀 Divergencias</h2>
+                            <div class="calibration-grid" style="margin-top: 15px;">
+                                <div class="calibration-item">
+                                    <div class="value" style="color: ${dashboardData.pro_indicators?.divergences?.rsi === 'bullish' ? '#4caf50' : dashboardData.pro_indicators?.divergences?.rsi === 'bearish' ? '#f44336' : '#90caf9'}">
+                                        ${dashboardData.pro_indicators?.divergences?.rsi?.toUpperCase() || 'NONE'}
+                                    </div>
+                                    <div class="label">RSI Divergence</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value" style="color: ${dashboardData.pro_indicators?.divergences?.macd === 'bullish' ? '#4caf50' : dashboardData.pro_indicators?.divergences?.macd === 'bearish' ? '#f44336' : '#90caf9'}">
+                                        ${dashboardData.pro_indicators?.divergences?.macd?.toUpperCase() || 'NONE'}
+                                    </div>
+                                    <div class="label">MACD Divergence</div>
+                                </div>
+                            </div>
+                            <p style="color: #64b5f6; font-size: 0.85em; margin-top: 15px;">
+                                Divergencias = Señales de reversión potentes
+                            </p>
+                        </div>
+
+                        <div class="chart-card" style="border-left: 4px solid #607d8b;">
+                            <h2>😱 Fear & Greed Index</h2>
+                            <div class="calibration-grid" style="margin-top: 15px;">
+                                <div class="calibration-item">
+                                    <div class="value" style="font-size: 2.5em; color: ${
+                                        dashboardData.pro_indicators?.fear_greed?.index < 25 ? '#f44336' :
+                                        dashboardData.pro_indicators?.fear_greed?.index < 45 ? '#ff9800' :
+                                        dashboardData.pro_indicators?.fear_greed?.index < 55 ? '#90caf9' :
+                                        dashboardData.pro_indicators?.fear_greed?.index < 75 ? '#8bc34a' : '#4caf50'
+                                    }">
+                                        ${dashboardData.pro_indicators?.fear_greed?.index || '50'}
+                                    </div>
+                                    <div class="label" style="text-transform: uppercase;">
+                                        ${dashboardData.pro_indicators?.fear_greed?.label?.replace('_', ' ') || 'Neutral'}
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="color: #64b5f6; font-size: 0.85em; margin-top: 15px;">
+                                Extreme Fear = Oportunidad de compra | Extreme Greed = Precaución
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Session & Positioning -->
+                    <div class="two-charts">
+                        <div class="chart-card" style="border-left: 4px solid #795548;">
+                            <h2>🌍 Sesión de Trading</h2>
+                            <div class="calibration-grid" style="margin-top: 15px;">
+                                <div class="calibration-item">
+                                    <div class="value" style="text-transform: capitalize;">
+                                        ${dashboardData.pro_indicators?.session?.current?.replace('_', ' ') || 'Off Hours'}
+                                    </div>
+                                    <div class="label">Sesión Actual</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value">${dashboardData.pro_indicators?.session?.volatility?.toUpperCase() || 'NORMAL'}</div>
+                                    <div class="label">Volatilidad</div>
+                                </div>
+                            </div>
+                            <p style="color: #64b5f6; font-size: 0.85em; margin-top: 15px;">
+                                🇺🇸 NY/London = Mayor volumen | 🌙 Off Hours = Menor liquidez
+                            </p>
+                        </div>
+
+                        <div class="chart-card" style="border-left: 4px solid #3f51b5;">
+                            <h2>📊 Posicionamiento del Mercado</h2>
+                            <div class="calibration-grid" style="margin-top: 15px;">
+                                <div class="calibration-item">
+                                    <div class="value" style="color: ${dashboardData.pro_indicators?.positioning?.long_short_ratio > 1.5 ? '#4caf50' : dashboardData.pro_indicators?.positioning?.long_short_ratio < 0.67 ? '#f44336' : '#90caf9'}">
+                                        ${dashboardData.pro_indicators?.positioning?.long_short_ratio?.toFixed(2) || '1.00'}
+                                    </div>
+                                    <div class="label">L/S Ratio</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value" style="color: #4caf50;">
+                                        ${dashboardData.pro_indicators?.positioning?.long_account_pct?.toFixed(1) || '50.0'}%
+                                    </div>
+                                    <div class="label">Longs</div>
+                                </div>
+                                <div class="calibration-item">
+                                    <div class="value" style="color: #f44336;">
+                                        ${dashboardData.pro_indicators?.positioning?.short_account_pct?.toFixed(1) || '50.0'}%
+                                    </div>
+                                    <div class="label">Shorts</div>
+                                </div>
+                            </div>
+                            <p style="color: #64b5f6; font-size: 0.85em; margin-top: 15px;">
+                                L/S > 1.5 = Mayoría long | L/S < 0.67 = Mayoría short
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CORRELATIONS TAB -->
+                <div id="tab-correlations" class="tab-content">
+                    <!-- Learned Weights Section - Model Learning -->
+                    <div class="chart-card" style="border: 2px solid #0288d1;">
+                        <h2>🧠 Pesos Aprendidos del Modelo (Auto-ajustados)</h2>
+                        <p style="color: #90caf9; margin-bottom: 20px;">
+                            Multiplicadores de peso aprendidos automáticamente. Valores > 1.0 aumentan la influencia del indicador, < 1.0 la reducen.
+                            Se actualizan con cada evaluación basándose en correlaciones observadas.
+                        </p>
+                        <div class="correlation-grid">
+                            ${renderLearnedWeights(dashboardData.learned_weights || {}, dashboardData.learned_correlations || {})}
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h2>📊 Correlaciones Aprendidas vs Históricas</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="learnedVsHistoricChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h2>🔗 Correlación Histórica de Indicadores</h2>
+                        <p style="color: #90caf9; margin-bottom: 20px;">
+                            Correlaciones calculadas de datos históricos (referencia).
+                        </p>
+                        <div class="chart-wrapper">
+                            <canvas id="correlationBarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h2>📊 Detalle de Correlaciones Históricas</h2>
+                        <div class="correlation-grid">
+                            ${Object.entries(correlations).map(([key, data]) => `
+                                <div class="correlation-item">
+                                    <span class="correlation-name">${data.name}</span>
+                                    <div class="correlation-bar-container">
+                                        <div class="correlation-bar ${data.correlation >= 0 ? 'positive' : 'negative'}"
+                                             style="width: ${Math.abs(data.correlation) * 100}%"></div>
+                                    </div>
+                                    <span class="correlation-value ${data.correlation >= 0 ? 'positive' : 'negative'}">
+                                        ${data.correlation >= 0 ? '+' : ''}${data.correlation.toFixed(3)}
+                                    </span>
+                                    <span class="correlation-strength ${data.strength}">${data.strength}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h2>🎯 Top Indicadores Predictivos</h2>
+                        <p style="color: #90caf9; margin-bottom: 20px;">
+                            Indicadores ordenados por fuerza de correlación con el precio.
+                        </p>
+                        <div class="chart-wrapper small">
+                            <canvas id="topIndicatorsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INDICATORS TAB -->
+                <div id="tab-indicators" class="tab-content">
+                    <div class="chart-card">
+                        <h2>📈 Indicadores Básicos vs Precio</h2>
+                        <p style="color: #90caf9; margin-bottom: 20px;">
+                            Cada indicador al momento de la predicción, comparado con el cambio de precio resultante.
+                        </p>
+                    </div>
+
+                    <div class="indicator-grid">
+                        ${Object.entries(correlations).filter(([k]) => !['macd_histogram', 'vwap_deviation', 'adx', 'mtf_confluence', 'fear_greed_index', 'long_short_ratio', 'open_interest'].includes(k)).slice(0, 6).map(([key, data]) => `
+                            <div class="indicator-card">
+                                <h3>
+                                    ${data.name}
+                                    <span class="corr-badge ${data.correlation >= 0 ? 'positive' : 'negative'}">
+                                        r=${data.correlation >= 0 ? '+' : ''}${data.correlation.toFixed(2)}
+                                    </span>
+                                </h3>
+                                <div class="mini-chart">
+                                    <canvas id="indicator-${key}"></canvas>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="chart-card" style="margin-top: 30px;">
+                        <h2>🎯 Indicadores PRO vs Precio</h2>
+                        <p style="color: #90caf9; margin-bottom: 20px;">
+                            Indicadores profesionales: MACD, VWAP, ADX, Multi-Timeframe, Fear & Greed, Posicionamiento.
+                        </p>
+                    </div>
+
+                    <div class="indicator-grid">
+                        ${Object.entries(correlations).filter(([k]) => ['macd_histogram', 'vwap_deviation', 'adx', 'mtf_confluence', 'fear_greed_index', 'long_short_ratio', 'open_interest'].includes(k)).map(([key, data]) => `
+                            <div class="indicator-card" style="border-left: 3px solid #9c27b0;">
+                                <h3>
+                                    ${data.name}
+                                    <span class="corr-badge ${data.correlation >= 0 ? 'positive' : 'negative'}">
+                                        r=${data.correlation >= 0 ? '+' : ''}${data.correlation.toFixed(2)}
+                                    </span>
+                                </h3>
+                                <div class="mini-chart">
+                                    <canvas id="indicator-${key}"></canvas>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="chart-card" style="margin-top: 30px;">
+                        <h2>🔄 Comparativa Multi-Indicador</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="multiIndicatorChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card" style="margin-top: 30px;">
+                        <h2>📊 Comparativa PRO Indicators</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="proIndicatorChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HISTORY TAB -->
+                <div id="tab-history" class="tab-content">
+                    <div class="table-card">
+                        <h2>📋 Historial Completo de Predicciones</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Dir.</th>
+                                    <th>Precio Inicial</th>
+                                    <th>Predicción</th>
+                                    <th>Cierre Real</th>
+                                    <th>Desv.</th>
+                                    <th>Resultado</th>
+                                    <th>P&L</th>
+                                    <th>RSI</th>
+                                    <th>Momentum</th>
+                                    <th>OB Imbal.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${getFilteredPredictions().slice().reverse().map(p => {
+                                    const isNoTrade = p.direction === 'NO_TRADE';
+                                    const hasFullPrediction = p.predicted_close !== null;
+                                    const isEvaluated = p.actual_close !== null;
+                                    return `
+                                    <tr style="${isNoTrade ? 'opacity: 0.7; background: rgba(100,100,100,0.1);' : ''}">
+                                        <td>${new Date(p.timestamp).toLocaleString()}</td>
+                                        <td>
+                                            ${isNoTrade
+                                                ? `<span class="badge" style="background: #616161; color: #bbb;">⏸ NO TRADE</span>
+                                                   ${p.predicted_direction ? '<br><small style="color: #888;">(pred: ' + p.predicted_direction + ')</small>' : ''}`
+                                                : `<span class="badge ${p.direction.toLowerCase()}">${p.direction}</span>`
+                                            }
+                                        </td>
+                                        <td>$${p.current_price?.toLocaleString() || '-'}</td>
+                                        <td style="${isNoTrade ? 'color: #888;' : ''}">
+                                            ${hasFullPrediction ? '$' + p.predicted_close?.toLocaleString() : '-'}
+                                        </td>
+                                        <td style="${isNoTrade ? 'color: #888;' : ''}">
+                                            ${isEvaluated ? '$' + p.actual_close?.toLocaleString() : '-'}
+                                        </td>
+                                        <td style="color: ${!isEvaluated ? '#888' : (p.deviation_pct || 0) >= 0 ? '#4caf50' : '#f44336'}">
+                                            ${isEvaluated && p.deviation_pct !== null ? (p.deviation_pct >= 0 ? '+' : '') + p.deviation_pct.toFixed(2) + '%' : '-'}
+                                        </td>
+                                        <td>
+                                            ${isNoTrade
+                                                ? (isEvaluated
+                                                    ? (p.direction_correct
+                                                        ? '<span class="badge" style="background: rgba(76,175,80,0.3); color: #81c784;">✓ LEARN</span>'
+                                                        : '<span class="badge" style="background: rgba(244,67,54,0.3); color: #e57373;">✗ LEARN</span>')
+                                                    : '<span class="badge" style="background: #424242; color: #888;">⏸</span>')
+                                                : p.direction_correct === null
+                                                    ? '<span class="badge pending">PENDING</span>'
+                                                    : p.direction_correct
+                                                        ? '<span class="badge correct">✓</span>'
+                                                        : '<span class="badge incorrect">✗</span>'
+                                            }
+                                        </td>
+                                        <td style="color: #888;">
+                                            ${isNoTrade ? '-' : (isEvaluated ? (p.pnl_pct >= 0 ? '+' : '') + p.pnl_pct.toFixed(2) + '%' : '-')}
+                                        </td>
+                                        <td>${p.indicators?.rsi_1h?.toFixed(1) || '-'}</td>
+                                        <td>${p.indicators?.momentum_1h?.toFixed(2) || '-'}%</td>
+                                        <td>${((p.indicators?.orderbook_imbalance || 0) * 100).toFixed(1)}%</td>
+                                    </tr>
+                                `}).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="refresh-info">
+                    Última actualización: ${new Date(dashboardData.generated_at).toLocaleString()}<br>
+                    <small>Auto-refresh cada 30 segundos | Reportes cada 5 minutos</small>
+                </div>
+            `;
+
+            renderOverviewCharts();
+        }
+
+        function renderOverviewCharts() {
+            const predictions = getFilteredPredictions();
+            const evaluated = predictions.filter(p => p.actual_close !== null && p.direction !== 'NO_TRADE');
+
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy?.());
+            charts = {};
+
+            // Main Chart
+            const mainCtx = document.getElementById('mainChart')?.getContext('2d');
+            if (mainCtx) {
+                charts.main = new Chart(mainCtx, {
+                    type: 'line',
+                    data: {
+                        labels: evaluated.map(p => new Date(p.timestamp)),
+                        datasets: [
+                            {
+                                label: 'Predicción',
+                                data: evaluated.map(p => p.predicted_close),
+                                borderColor: '#29b6f6',
+                                backgroundColor: 'rgba(41, 182, 246, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: 4,
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Cierre Real',
+                                data: evaluated.map(p => p.actual_close),
+                                borderColor: '#f44336',
+                                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: 4,
+                                tension: 0.1
+                            }
+                        ]
+                    },
+                    options: getChartOptions('$')
+                });
+            }
+
+            // Deviation Chart
+            const devCtx = document.getElementById('deviationChart')?.getContext('2d');
+            if (devCtx) {
+                charts.deviation = new Chart(devCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: evaluated.slice(-15).map((p, i) => `#${i + 1}`),
+                        datasets: [{
+                            label: 'Desviación %',
+                            data: evaluated.slice(-15).map(p => p.deviation_pct),
+                            backgroundColor: evaluated.slice(-15).map(p =>
+                                p.deviation_pct >= 0 ? 'rgba(76, 175, 80, 0.6)' : 'rgba(244, 67, 54, 0.6)'
+                            )
+                        }]
+                    },
+                    options: { ...getChartOptions('%'), plugins: { legend: { display: false } } }
+                });
+            }
+
+            // Outcome Chart
+            const outcomes = dashboardData.statistics.outcomes;
+            const outcomeCtx = document.getElementById('outcomeChart')?.getContext('2d');
+            if (outcomeCtx && Object.keys(outcomes).length > 0) {
+                charts.outcome = new Chart(outcomeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(outcomes),
+                        datasets: [{
+                            data: Object.values(outcomes),
+                            backgroundColor: ['#4caf50', '#f44336', '#ffb74d', '#29b6f6', '#0288d1']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { color: '#e3f2fd' } } }
+                    }
+                });
+            }
+
+            // P&L Chart
+            let cumPnl = 0;
+            const pnlData = evaluated.map(p => { cumPnl += p.pnl_pct; return cumPnl; });
+            const pnlCtx = document.getElementById('pnlChart')?.getContext('2d');
+            if (pnlCtx) {
+                const finalPnl = pnlData[pnlData.length - 1] || 0;
+                charts.pnl = new Chart(pnlCtx, {
+                    type: 'line',
+                    data: {
+                        labels: evaluated.map(p => new Date(p.timestamp)),
+                        datasets: [{
+                            label: 'P&L Acumulado %',
+                            data: pnlData,
+                            borderColor: finalPnl >= 0 ? '#4caf50' : '#f44336',
+                            backgroundColor: finalPnl >= 0 ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: { ...getChartOptions('%'), plugins: { legend: { display: false } } }
+                });
+            }
+        }
+
+        function renderCorrelationCharts() {
+            const correlations = dashboardData.correlations || {};
+            const corrEntries = Object.entries(correlations);
+            const learnedCorr = dashboardData.learned_correlations || {};
+            const learnedWeights = dashboardData.learned_weights || {};
+
+            const indicatorNames = {
+                'momentum_1h': 'Momentum 1H',
+                'momentum_15m': 'Momentum 15m',
+                'ema_trend': 'EMA Trend',
+                'price_structure': 'Price Structure',
+                'zscore': 'Z-Score',
+                'rsi': 'RSI',
+                'orderbook': 'Order Book',
+                'funding': 'Funding Rate',
+                'volume_confirm': 'Volume Confirm',
+                'volume_trend': 'Volume Trend',
+                'bollinger': 'Bollinger'
+            };
+
+            // Learned vs Historic Correlations Chart
+            const learnedCtx = document.getElementById('learnedVsHistoricChart')?.getContext('2d');
+            if (learnedCtx) {
+                if (charts.learnedVsHistoric) charts.learnedVsHistoric.destroy();
+
+                const labels = Object.keys(learnedWeights).map(k => indicatorNames[k] || k);
+                const learnedData = Object.keys(learnedWeights).map(k => learnedCorr[k] || 0);
+                const weightsData = Object.keys(learnedWeights).map(k => (learnedWeights[k] - 1) * 2); // Scale for visibility
+
+                charts.learnedVsHistoric = new Chart(learnedCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Correlación Aprendida',
+                                data: learnedData,
+                                backgroundColor: 'rgba(2, 136, 209, 0.7)',
+                                borderColor: '#0288d1',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Peso Ajustado (escala)',
+                                data: weightsData,
+                                backgroundColor: 'rgba(41, 182, 246, 0.7)',
+                                borderColor: '#29b6f6',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#e3f2fd' } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        if (ctx.datasetIndex === 1) {
+                                            const weight = learnedWeights[Object.keys(learnedWeights)[ctx.dataIndex]];
+                                            return `Peso: ${weight?.toFixed(3)}x`;
+                                        }
+                                        return `Correlación: ${ctx.raw?.toFixed(4)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#64b5f6', maxRotation: 45 }, grid: { color: 'rgba(79,195,247,0.1)' } },
+                            y: {
+                                min: -1, max: 1,
+                                ticks: { color: '#64b5f6' },
+                                grid: { color: 'rgba(79,195,247,0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Correlation Bar Chart (Historic)
+            const corrCtx = document.getElementById('correlationBarChart')?.getContext('2d');
+            if (corrCtx && corrEntries.length > 0) {
+                if (charts.corrBar) charts.corrBar.destroy();
+                charts.corrBar = new Chart(corrCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: corrEntries.map(([k, v]) => v.name),
+                        datasets: [{
+                            label: 'Correlación Histórica',
+                            data: corrEntries.map(([k, v]) => v.correlation),
+                            backgroundColor: corrEntries.map(([k, v]) =>
+                                v.correlation >= 0 ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)'
+                            )
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: {
+                                min: -1, max: 1,
+                                ticks: { color: '#64b5f6' },
+                                grid: { color: 'rgba(79,195,247,0.1)' }
+                            },
+                            y: { ticks: { color: '#ccc' }, grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // Top Indicators Chart
+            const topCtx = document.getElementById('topIndicatorsChart')?.getContext('2d');
+            if (topCtx && corrEntries.length > 0) {
+                const top5 = corrEntries.slice(0, 5);
+                if (charts.topInd) charts.topInd.destroy();
+                charts.topInd = new Chart(topCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: top5.map(([k, v]) => v.name),
+                        datasets: [{
+                            data: top5.map(([k, v]) => Math.abs(v.correlation)),
+                            backgroundColor: [
+                                'rgba(41, 182, 246, 0.7)',
+                                'rgba(2, 136, 209, 0.7)',
+                                'rgba(76, 175, 80, 0.7)',
+                                'rgba(255, 165, 0, 0.7)',
+                                'rgba(244, 67, 54, 0.7)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { color: '#e3f2fd' } } },
+                        scales: { r: { ticks: { display: false }, grid: { color: 'rgba(79,195,247,0.1)' } } }
+                    }
+                });
+            }
+        }
+
+        function renderIndicatorCharts() {
+            const correlations = dashboardData.correlations || {};
+            const series = dashboardData.indicator_series || {};
+            const filteredPredictions = getFilteredPredictions();
+            const filteredTimestamps = new Set(filteredPredictions.map(p => p.timestamp));
+
+            // PRO indicator keys
+            const proKeys = ['macd_histogram', 'vwap_deviation', 'adx', 'mtf_confluence', 'fear_greed_index', 'long_short_ratio', 'open_interest'];
+
+            // Render ALL indicators (basic and PRO) scatter charts
+            Object.entries(correlations).forEach(([key, corrData]) => {
+                const ctx = document.getElementById(`indicator-${key}`)?.getContext('2d');
+                if (!ctx) return;
+
+                // Filter series data by timestamps in filtered predictions
+                const data = (series[key] || []).filter(d =>
+                    d.price_change !== null &&
+                    d.value !== null &&
+                    filteredTimestamps.has(d.timestamp)
+                );
+                const isPro = proKeys.includes(key);
+
+                if (charts[`ind-${key}`]) charts[`ind-${key}`].destroy();
+                charts[`ind-${key}`] = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: corrData.name,
+                            data: data.map(d => ({ x: d.value, y: d.price_change })),
+                            backgroundColor: isPro ? 'rgba(156, 39, 176, 0.6)' : 'rgba(41, 182, 246, 0.6)',
+                            pointRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { title: { display: true, text: corrData.name, color: '#64b5f6' }, ticks: { color: '#64b5f6' }, grid: { color: 'rgba(79,195,247,0.1)' } },
+                            y: { title: { display: true, text: 'Cambio Precio %', color: '#64b5f6' }, ticks: { color: '#64b5f6' }, grid: { color: 'rgba(79,195,247,0.1)' } }
+                        }
+                    }
+                });
+            });
+
+            // Multi-indicator chart (Basic)
+            const multiCtx = document.getElementById('multiIndicatorChart')?.getContext('2d');
+            if (multiCtx) {
+                const predictions = getFilteredPredictions().filter(p => p.actual_close);
+                if (charts.multi) charts.multi.destroy();
+
+                charts.multi = new Chart(multiCtx, {
+                    type: 'line',
+                    data: {
+                        labels: predictions.map(p => new Date(p.timestamp)),
+                        datasets: [
+                            {
+                                label: 'RSI 1H (÷10)',
+                                data: predictions.map(p => (p.indicators?.rsi_1h || 50) / 10),
+                                borderColor: '#29b6f6',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Momentum 1H',
+                                data: predictions.map(p => p.indicators?.momentum_1h || 0),
+                                borderColor: '#0288d1',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'OB Imbalance (×10)',
+                                data: predictions.map(p => (p.indicators?.orderbook_imbalance || 0) * 10),
+                                borderColor: '#ffb74d',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Cambio Precio %',
+                                data: predictions.map(p => ((p.actual_close - p.current_price) / p.current_price * 100)),
+                                borderColor: '#f44336',
+                                borderWidth: 3,
+                                pointRadius: 3,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: getChartOptions('')
+                });
+            }
+
+            // PRO Indicator chart
+            const proCtx = document.getElementById('proIndicatorChart')?.getContext('2d');
+            if (proCtx) {
+                const predictions = getFilteredPredictions().filter(p => p.actual_close);
+                if (charts.proMulti) charts.proMulti.destroy();
+
+                charts.proMulti = new Chart(proCtx, {
+                    type: 'line',
+                    data: {
+                        labels: predictions.map(p => new Date(p.timestamp)),
+                        datasets: [
+                            {
+                                label: 'MACD Histogram (÷100)',
+                                data: predictions.map(p => (p.indicators?.macd_histogram || 0) / 100),
+                                borderColor: '#9c27b0',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Fear & Greed (÷10)',
+                                data: predictions.map(p => (p.indicators?.fear_greed_index || 50) / 10),
+                                borderColor: '#ff5722',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'ADX (÷10)',
+                                data: predictions.map(p => (p.indicators?.adx || 0) / 10),
+                                borderColor: '#00bcd4',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'MTF Confluence',
+                                data: predictions.map(p => p.indicators?.mtf_confluence || 0),
+                                borderColor: '#4caf50',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Cambio Precio %',
+                                data: predictions.map(p => ((p.actual_close - p.current_price) / p.current_price * 100)),
+                                borderColor: '#f44336',
+                                borderWidth: 3,
+                                pointRadius: 3,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: getChartOptions('')
+                });
+            }
+        }
+
+        function getChartOptions(suffix) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#e3f2fd' } } },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: { displayFormats: { hour: 'MMM d, HH:mm' } },
+                        ticks: { color: '#64b5f6' },
+                        grid: { color: 'rgba(79,195,247,0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#64b5f6', callback: v => suffix === '$' ? '$' + v.toLocaleString() : v.toFixed(1) + suffix },
+                        grid: { color: 'rgba(79,195,247,0.1)' }
+                    }
+                }
+            };
+        }
+
+        // Initial load
+        loadData();
+
+        // Auto refresh every 30 seconds for more responsive updates
+        setInterval(loadData, 30000);
+
+        // Also refresh when tab becomes visible (in case user switched away)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                loadData();
+            }
+        });
+    </script>
+</body>
+</html>
