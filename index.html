@@ -477,6 +477,7 @@
         <button class="tab-btn" onclick="showTab('correlations')">🔗 Correlaciones</button>
         <button class="tab-btn" onclick="showTab('indicators')">📈 Indicadores</button>
         <button class="tab-btn" onclick="showTab('history')">📋 Historial</button>
+        <button class="tab-btn" onclick="showTab('backtest')">🔬 Backtest ML</button>
     </div>
 
     <!-- Date/Time Filter -->
@@ -1380,6 +1381,101 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- BACKTEST ML TAB -->
+                <div id="tab-backtest" class="tab-content">
+                    ${dashboardData.backtest_history ? `
+                    <!-- Backtest Summary -->
+                    <div class="stats-grid" style="margin-bottom: 20px;">
+                        <div class="stat-card positive">
+                            <div class="value">${dashboardData.backtest_history.summary?.total_pnl_pct?.toFixed(2) || 0}%</div>
+                            <div class="label">PnL Total</div>
+                        </div>
+                        <div class="stat-card neutral">
+                            <div class="value">${dashboardData.backtest_history.total_trades || 0}</div>
+                            <div class="label">Total Trades</div>
+                        </div>
+                        <div class="stat-card positive">
+                            <div class="value">${dashboardData.backtest_history.summary?.n_long || 0}</div>
+                            <div class="label">Trades LONG</div>
+                        </div>
+                        <div class="stat-card negative">
+                            <div class="value">${dashboardData.backtest_history.summary?.n_short || 0}</div>
+                            <div class="label">Trades SHORT</div>
+                        </div>
+                        <div class="stat-card ${dashboardData.backtest_history.summary?.win_rate >= 50 ? 'positive' : 'negative'}">
+                            <div class="value">${dashboardData.backtest_history.summary?.win_rate?.toFixed(1) || 0}%</div>
+                            <div class="label">Win Rate</div>
+                        </div>
+                    </div>
+
+                    <!-- Backtest Trades Table -->
+                    <div class="table-card">
+                        <h2>🔬 Historial de Trades del Modelo ML (Incremental Learning)</h2>
+                        <p style="color: #90caf9; margin-bottom: 15px; font-size: 0.9em;">
+                            Mostrando últimos 500 trades de ${dashboardData.backtest_history.total_trades} totales.
+                            El modelo aprendió incrementalmente de cada trade.
+                        </p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Dirección</th>
+                                    <th>Precio</th>
+                                    <th>Predicción</th>
+                                    <th>Real</th>
+                                    <th>P&L</th>
+                                    <th>P&L Acum.</th>
+                                    <th>Resultado</th>
+                                    <th>Modelo v</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${dashboardData.backtest_history.trades?.slice(-500).reverse().map(t => `
+                                <tr>
+                                    <td>${t.timestamp ? new Date(t.timestamp).toLocaleString() : '-'}</td>
+                                    <td>
+                                        <span class="badge ${t.direction?.toLowerCase()}">${t.direction}</span>
+                                    </td>
+                                    <td>$${t.price?.toLocaleString() || '-'}</td>
+                                    <td style="color: ${t.prediction > 0 ? '#4caf50' : '#f44336'}">
+                                        ${(t.prediction * 100)?.toFixed(4) || '-'}%
+                                    </td>
+                                    <td style="color: ${t.actual > 0 ? '#4caf50' : '#f44336'}">
+                                        ${(t.actual * 100)?.toFixed(4) || '-'}%
+                                    </td>
+                                    <td style="color: ${t.pnl_pct >= 0 ? '#4caf50' : '#f44336'}">
+                                        ${t.pnl_pct >= 0 ? '+' : ''}${t.pnl_pct?.toFixed(4) || 0}%
+                                    </td>
+                                    <td style="color: ${t.cumulative_pnl_pct >= 0 ? '#4caf50' : '#f44336'}; font-weight: bold;">
+                                        ${t.cumulative_pnl_pct >= 0 ? '+' : ''}${t.cumulative_pnl_pct?.toFixed(2) || 0}%
+                                    </td>
+                                    <td>
+                                        ${t.correct === null
+                                            ? '<span class="badge pending">-</span>'
+                                            : t.correct
+                                                ? '<span class="badge correct">✓</span>'
+                                                : '<span class="badge incorrect">✗</span>'
+                                        }
+                                    </td>
+                                    <td style="color: #64b5f6;">v${t.model_version}</td>
+                                </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    ` : `
+                    <div class="chart-card" style="text-align: center; padding: 40px;">
+                        <h2>🔬 Backtest No Disponible</h2>
+                        <p style="color: #90caf9;">
+                            Ejecuta el aprendizaje incremental para generar el historial de backtest:
+                        </p>
+                        <code style="display: block; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                            cd quant && python3 training/incremental_learner.py --save-model
+                        </code>
+                    </div>
+                    `}
                 </div>
 
                 <div class="refresh-info">
