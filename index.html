@@ -1443,9 +1443,9 @@
 
                     <!-- Backtest Summary -->
                     <div class="chart-card" style="margin-bottom: 20px;">
-                        <h2>📊 Resultados del Backtest (Walk-Forward)</h2>
+                        <h2>📊 Resultados del Backtest - ${dashboardData.production_strategy.summary?.strategy_version || 'V1'}</h2>
                         <p style="color: #90caf9; margin-bottom: 15px;">
-                            Estrategia con leverage 1-2x y gestión de riesgo dinámica | Período: Dic 2024 - Feb 2026
+                            Estrategia ${dashboardData.production_strategy.summary?.strategy_version || 'V1'} con leverage 1-2x y gestión de riesgo dinámica | Período: Ene 2025 - Feb 2026
                         </p>
                         <div class="stats-grid">
                             <div class="stat-card ${dashboardData.production_strategy.summary?.total_pnl_pct >= 0 ? 'positive' : 'negative'}">
