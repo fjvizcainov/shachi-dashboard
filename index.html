@@ -804,6 +804,60 @@
 
                 <!-- PRO INDICATORS TAB -->
                 <div id="tab-pro" class="tab-content">
+                    <!-- VOLATILITY SIGNAL - From Quant Pipeline (Sharpe 5.67) -->
+                    ${dashboardData.volatility_signal ? `
+                    <div class="chart-card" style="border: 2px solid ${dashboardData.volatility_signal.signal === 'LONG_VOL' ? '#4caf50' : dashboardData.volatility_signal.signal === 'SHORT_VOL' ? '#f44336' : '#29b6f6'}; background: linear-gradient(145deg, rgba(13, 33, 55, 0.95), rgba(${dashboardData.volatility_signal.signal === 'LONG_VOL' ? '76, 175, 80' : dashboardData.volatility_signal.signal === 'SHORT_VOL' ? '244, 67, 54' : '41, 182, 246'}, 0.1));">
+                        <h2>🎯 Señal de Volatilidad (Quant Model - Sharpe 5.67)</h2>
+                        <div class="stats-grid" style="margin-top: 15px;">
+                            <div class="stat-card ${dashboardData.volatility_signal.signal === 'LONG_VOL' ? 'positive' : dashboardData.volatility_signal.signal === 'SHORT_VOL' ? 'negative' : 'neutral'}">
+                                <div class="value" style="font-size: 1.8em;">${dashboardData.volatility_signal.signal?.replace('_', ' ') || 'NEUTRAL'}</div>
+                                <div class="label">Señal</div>
+                            </div>
+                            <div class="stat-card neutral">
+                                <div class="value">${dashboardData.volatility_signal.confidence || 0}%</div>
+                                <div class="label">Confianza</div>
+                            </div>
+                            <div class="stat-card neutral">
+                                <div class="value">${dashboardData.volatility_signal.realized_vol || '-'}%</div>
+                                <div class="label">Vol Realizada</div>
+                            </div>
+                            <div class="stat-card neutral">
+                                <div class="value">${dashboardData.volatility_signal.predicted_vol || '-'}%</div>
+                                <div class="label">Vol Promedio</div>
+                            </div>
+                            <div class="stat-card ${dashboardData.volatility_signal.vol_zscore > 1 ? 'negative' : dashboardData.volatility_signal.vol_zscore < -1 ? 'positive' : 'neutral'}">
+                                <div class="value">${dashboardData.volatility_signal.vol_regime || 'NORMAL'}</div>
+                                <div class="label">Régimen</div>
+                            </div>
+                            <div class="stat-card neutral">
+                                <div class="value">P${dashboardData.volatility_signal.vol_percentile || 50}</div>
+                                <div class="label">Percentil Vol</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                            <p style="color: #b3e5fc; margin-bottom: 10px;">
+                                <strong>📊 Recomendación:</strong> ${dashboardData.volatility_signal.recommendation || '-'}
+                            </p>
+                            ${dashboardData.position_sizing ? `
+                            <p style="color: #90caf9; font-size: 0.9em;">
+                                <strong>📐 Position Sizing:</strong> Escalar posición a <strong style="color: #29b6f6;">${dashboardData.position_sizing.vol_scalar}x</strong> del tamaño base
+                                ${dashboardData.volatility_signal.suggested_atr_stop ? `| Stop sugerido: <strong style="color: #ffb74d;">$${dashboardData.volatility_signal.suggested_atr_stop.toLocaleString()}</strong> (2x ATR)` : ''}
+                            </p>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="chart-card" style="border: 1px dashed #64b5f6; opacity: 0.7;">
+                        <h2>🎯 Señal de Volatilidad</h2>
+                        <p style="color: #90caf9; padding: 20px;">
+                            Señal no disponible. Ejecuta el pipeline de quant para activar:
+                            <code style="display: block; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                                cd quant && python main.py build_features
+                            </code>
+                        </p>
+                    </div>
+                    `}
+
                     <!-- Current Price & Session -->
                     <div class="stats-grid" style="margin-bottom: 20px;">
                         <div class="stat-card neutral">
