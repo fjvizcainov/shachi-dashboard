@@ -807,19 +807,31 @@
                     <!-- VOLATILITY SIGNAL - From Quant Pipeline (Sharpe 5.67) -->
                     ${dashboardData.volatility_signal ? `
                     <div class="chart-card" style="border: 2px solid ${dashboardData.volatility_signal.signal === 'LONG_VOL' ? '#4caf50' : dashboardData.volatility_signal.signal === 'SHORT_VOL' ? '#f44336' : '#29b6f6'}; background: linear-gradient(145deg, rgba(13, 33, 55, 0.95), rgba(${dashboardData.volatility_signal.signal === 'LONG_VOL' ? '76, 175, 80' : dashboardData.volatility_signal.signal === 'SHORT_VOL' ? '244, 67, 54' : '41, 182, 246'}, 0.1));">
-                        <h2>🎯 Señal de Volatilidad (Quant Model - Sharpe 30d: ${dashboardData.volatility_signal.rolling_sharpe_30d || '-'})</h2>
+                        <h2>🎯 Señal de Volatilidad (Quant Model - Sharpe All-Time: ${dashboardData.volatility_signal.sharpe_all_time || '-'})</h2>
                         <div class="stats-grid" style="margin-top: 15px;">
                             <div class="stat-card ${dashboardData.volatility_signal.signal === 'LONG_VOL' ? 'positive' : dashboardData.volatility_signal.signal === 'SHORT_VOL' ? 'negative' : 'neutral'}">
                                 <div class="value" style="font-size: 1.8em;">${dashboardData.volatility_signal.signal?.replace('_', ' ') || 'NEUTRAL'}</div>
                                 <div class="label">Señal</div>
                             </div>
-                            <div class="stat-card ${dashboardData.volatility_signal.rolling_sharpe_7d > 1 ? 'positive' : dashboardData.volatility_signal.rolling_sharpe_7d < -1 ? 'negative' : 'neutral'}">
-                                <div class="value">${dashboardData.volatility_signal.rolling_sharpe_7d || 0}</div>
-                                <div class="label">Sharpe 7d</div>
+                            <div class="stat-card ${dashboardData.volatility_signal.sharpe_all_time > 1 ? 'positive' : dashboardData.volatility_signal.sharpe_all_time < 0 ? 'negative' : 'neutral'}">
+                                <div class="value">${dashboardData.volatility_signal.sharpe_all_time || 0}</div>
+                                <div class="label">Sharpe All-Time</div>
                             </div>
-                            <div class="stat-card ${dashboardData.volatility_signal.strategy_return_7d > 0 ? 'positive' : dashboardData.volatility_signal.strategy_return_7d < 0 ? 'negative' : 'neutral'}">
-                                <div class="value">${dashboardData.volatility_signal.strategy_return_7d || 0}%</div>
-                                <div class="label">Return 7d</div>
+                            <div class="stat-card ${dashboardData.volatility_signal.strategy_return_all_time > 0 ? 'positive' : dashboardData.volatility_signal.strategy_return_all_time < 0 ? 'negative' : 'neutral'}">
+                                <div class="value">${dashboardData.volatility_signal.strategy_return_all_time || 0}%</div>
+                                <div class="label">Return All-Time</div>
+                            </div>
+                            <div class="stat-card neutral">
+                                <div class="value">${dashboardData.volatility_signal.total_signals || 0}</div>
+                                <div class="label">Total Señales</div>
+                            </div>
+                            <div class="stat-card ${dashboardData.volatility_signal.rolling_sharpe_30d > 1 ? 'positive' : dashboardData.volatility_signal.rolling_sharpe_30d < 0 ? 'negative' : 'neutral'}">
+                                <div class="value">${dashboardData.volatility_signal.rolling_sharpe_30d || 0}</div>
+                                <div class="label">Sharpe 30d</div>
+                            </div>
+                            <div class="stat-card ${dashboardData.volatility_signal.strategy_return_30d > 0 ? 'positive' : dashboardData.volatility_signal.strategy_return_30d < 0 ? 'negative' : 'neutral'}">
+                                <div class="value">${dashboardData.volatility_signal.strategy_return_30d || 0}%</div>
+                                <div class="label">Return 30d</div>
                             </div>
                             <div class="stat-card neutral">
                                 <div class="value">${dashboardData.volatility_signal.confidence || 0}%</div>
