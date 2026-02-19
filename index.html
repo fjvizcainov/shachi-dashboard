@@ -1386,14 +1386,18 @@
                 <!-- BACKTEST ML TAB -->
                 <div id="tab-backtest" class="tab-content">
                     ${dashboardData.production_strategy ? `
-                    <!-- Live ML Signal -->
+                    <!-- Live ML Signal (V2 Algorithm) -->
                     ${dashboardData.hourly_ml ? `
                     <div class="chart-card" style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(33,150,243,0.15), rgba(156,39,176,0.15));">
-                        <h2>🤖 Señal ML en Vivo (Modelo v${dashboardData.hourly_ml.model_version})</h2>
+                        <h2>🤖 Señal ML en Vivo - ${dashboardData.hourly_ml.algorithm || 'V1'} (Modelo v${dashboardData.hourly_ml.model_version})</h2>
                         <div class="stats-grid" style="margin-top: 15px;">
                             <div class="stat-card ${dashboardData.hourly_ml.last_signal?.signal === 'LONG' ? 'positive' : dashboardData.hourly_ml.last_signal?.signal === 'SHORT' ? 'negative' : 'neutral'}">
                                 <div class="value" style="font-size: 2em;">${dashboardData.hourly_ml.last_signal?.signal || 'N/A'}</div>
                                 <div class="label">Señal Actual</div>
+                            </div>
+                            <div class="stat-card ${dashboardData.hourly_ml.last_signal?.conviction === 'high' ? 'positive' : dashboardData.hourly_ml.last_signal?.conviction === 'medium' ? 'neutral' : 'neutral'}">
+                                <div class="value" style="text-transform: uppercase;">${dashboardData.hourly_ml.last_signal?.conviction || 'none'}</div>
+                                <div class="label">Convicción</div>
                             </div>
                             <div class="stat-card neutral">
                                 <div class="value">${dashboardData.hourly_ml.last_signal?.confidence?.toFixed(1) || 0}%</div>
@@ -1404,15 +1408,32 @@
                                 <div class="label">Z-Score</div>
                             </div>
                             <div class="stat-card neutral">
+                                <div class="value">${dashboardData.hourly_ml.last_signal?.position_size_pct || 30}%</div>
+                                <div class="label">Tamaño Posición</div>
+                            </div>
+                            <div class="stat-card neutral">
                                 <div class="value">${dashboardData.hourly_ml.last_signal?.leverage?.toFixed(2) || 0}x</div>
-                                <div class="label">Leverage Recomendado</div>
+                                <div class="label">Leverage</div>
                             </div>
                             <div class="stat-card neutral">
                                 <div class="value">$${dashboardData.hourly_ml.last_signal?.price?.toLocaleString() || '-'}</div>
-                                <div class="label">Precio</div>
+                                <div class="label">Precio Entrada</div>
                             </div>
+                            ${dashboardData.hourly_ml.last_signal?.exit_targets?.stop_loss ? `
+                            <div class="stat-card negative">
+                                <div class="value">$${dashboardData.hourly_ml.last_signal.exit_targets.stop_loss?.toLocaleString() || '-'}</div>
+                                <div class="label">Stop Loss</div>
+                            </div>
+                            ` : ''}
+                            ${dashboardData.hourly_ml.last_signal?.exit_targets?.take_profit_trigger ? `
+                            <div class="stat-card positive">
+                                <div class="value">$${dashboardData.hourly_ml.last_signal.exit_targets.take_profit_trigger?.toLocaleString() || '-'}</div>
+                                <div class="label">Take Profit Trigger</div>
+                            </div>
+                            ` : ''}
                         </div>
                         <p style="color: #90caf9; margin-top: 15px; font-size: 0.85em;">
+                            Algoritmo: <strong>${dashboardData.hourly_ml.algorithm || 'V1'}</strong> |
                             Última actualización: ${dashboardData.hourly_ml.last_update ? new Date(dashboardData.hourly_ml.last_update).toLocaleString() : '-'} |
                             Predicciones evaluadas: ${dashboardData.hourly_ml.evaluated_predictions || 0} |
                             Precisión: ${dashboardData.hourly_ml.accuracy || 0}%
