@@ -1362,11 +1362,16 @@
                                     <strong>🎯 Trailing Stop ACTIVO:</strong> $${pos.trailing_stop_price?.toLocaleString()}
                                 </div>
                                 ` : ''}
+                                ${pos.tp_adjusted_by_sr ? `
+                                <div style="background: rgba(255,152,0,0.3); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,152,0,0.5);">
+                                    <strong>📊 TP ajustado por S/R:</strong> ${pos.tp_adjusted_by_sr}
+                                </div>
+                                ` : ''}
                             </div>
                         </div>
                         `).join('')}
                         <p style="margin-top: 15px; color: #ffc107; font-size: 0.9em;">
-                            ⚡ Posiciones gestionadas por V4-PositionMgr con TP/SL dinámicos basados en ATR
+                            ⚡ Posiciones gestionadas por V4-PositionMgr con TP/SL dinámicos basados en ATR y niveles S/R
                         </p>
                     </div>
                     ` : ''}
