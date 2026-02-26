@@ -1314,54 +1314,59 @@
                 <!-- HISTORY TAB -->
                 <div id="tab-history" class="tab-content">
 
-                    <!-- V4: Open Position Section -->
-                    ${dashboardData.position_manager?.open_position ? `
+                    <!-- V4: Open Positions Section (Multiple) -->
+                    ${dashboardData.position_manager?.open_positions?.length > 0 ? `
                     <div class="chart-card" style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(255,193,7,0.2), rgba(255,152,0,0.2)); border: 2px solid rgba(255,193,7,0.5);">
-                        <h2>🔥 Posición Abierta</h2>
-                        <div class="stats-grid" style="margin-top: 15px;">
-                            <div class="stat-card ${dashboardData.position_manager.open_position.direction === 'LONG' ? 'positive' : 'negative'}">
-                                <div class="value" style="font-size: 2em;">${dashboardData.position_manager.open_position.direction}</div>
-                                <div class="label">Dirección</div>
+                        <h2>🔥 Posiciones Abiertas (${dashboardData.position_manager.open_positions.length})</h2>
+                        ${dashboardData.position_manager.open_positions.map((pos, index) => `
+                        <div style="margin-top: ${index > 0 ? '25px' : '15px'}; padding-top: ${index > 0 ? '20px' : '0'}; border-top: ${index > 0 ? '1px solid rgba(255,255,255,0.2)' : 'none'};">
+                            <div style="margin-bottom: 10px; color: #ffc107; font-weight: bold;">📌 Posición #${index + 1}</div>
+                            <div class="stats-grid">
+                                <div class="stat-card ${pos.direction === 'LONG' ? 'positive' : 'negative'}">
+                                    <div class="value" style="font-size: 2em;">${pos.direction}</div>
+                                    <div class="label">Dirección</div>
+                                </div>
+                                <div class="stat-card neutral">
+                                    <div class="value">$${pos.entry_price?.toLocaleString()}</div>
+                                    <div class="label">Precio Entrada</div>
+                                </div>
+                                <div class="stat-card neutral">
+                                    <div class="value">${pos.size_pct}%</div>
+                                    <div class="label">Tamaño</div>
+                                </div>
+                                <div class="stat-card neutral">
+                                    <div class="value">${pos.leverage}x</div>
+                                    <div class="label">Leverage</div>
+                                </div>
+                                <div class="stat-card negative">
+                                    <div class="value">$${pos.stop_loss?.toLocaleString()}</div>
+                                    <div class="label">Stop Loss</div>
+                                </div>
+                                <div class="stat-card positive">
+                                    <div class="value">$${pos.take_profit?.toLocaleString()}</div>
+                                    <div class="label">Take Profit</div>
+                                </div>
                             </div>
-                            <div class="stat-card neutral">
-                                <div class="value">$${dashboardData.position_manager.open_position.entry_price?.toLocaleString()}</div>
-                                <div class="label">Precio Entrada</div>
-                            </div>
-                            <div class="stat-card neutral">
-                                <div class="value">${dashboardData.position_manager.open_position.size_pct}%</div>
-                                <div class="label">Tamaño</div>
-                            </div>
-                            <div class="stat-card neutral">
-                                <div class="value">${dashboardData.position_manager.open_position.leverage}x</div>
-                                <div class="label">Leverage</div>
-                            </div>
-                            <div class="stat-card negative">
-                                <div class="value">$${dashboardData.position_manager.open_position.stop_loss?.toLocaleString()}</div>
-                                <div class="label">Stop Loss</div>
-                            </div>
-                            <div class="stat-card positive">
-                                <div class="value">$${dashboardData.position_manager.open_position.take_profit?.toLocaleString()}</div>
-                                <div class="label">Take Profit</div>
+                            <div style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 15px;">
+                                <div style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px;">
+                                    <strong>Entrada:</strong> ${new Date(pos.entry_time).toLocaleString()}
+                                </div>
+                                <div style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px;">
+                                    <strong>Convicción:</strong> ${pos.conviction?.toUpperCase() || 'N/A'}
+                                </div>
+                                <div style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px;">
+                                    <strong>Modelo:</strong> v${pos.model_version}
+                                </div>
+                                ${pos.trailing_stop_active ? `
+                                <div style="background: rgba(76,175,80,0.3); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(76,175,80,0.5);">
+                                    <strong>🎯 Trailing Stop ACTIVO:</strong> $${pos.trailing_stop_price?.toLocaleString()}
+                                </div>
+                                ` : ''}
                             </div>
                         </div>
-                        <div style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 15px;">
-                            <div style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px;">
-                                <strong>Entrada:</strong> ${new Date(dashboardData.position_manager.open_position.entry_time).toLocaleString()}
-                            </div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px;">
-                                <strong>Convicción:</strong> ${dashboardData.position_manager.open_position.conviction?.toUpperCase() || 'N/A'}
-                            </div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px;">
-                                <strong>Modelo:</strong> v${dashboardData.position_manager.open_position.model_version}
-                            </div>
-                            ${dashboardData.position_manager.open_position.trailing_stop_active ? `
-                            <div style="background: rgba(76,175,80,0.3); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(76,175,80,0.5);">
-                                <strong>🎯 Trailing Stop ACTIVO:</strong> $${dashboardData.position_manager.open_position.trailing_stop_price?.toLocaleString()}
-                            </div>
-                            ` : ''}
-                        </div>
+                        `).join('')}
                         <p style="margin-top: 15px; color: #ffc107; font-size: 0.9em;">
-                            ⚡ Posición gestionada por V4-PositionMgr con TP/SL dinámicos basados en ATR
+                            ⚡ Posiciones gestionadas por V4-PositionMgr con TP/SL dinámicos basados en ATR
                         </p>
                     </div>
                     ` : ''}
