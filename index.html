@@ -1432,6 +1432,45 @@
                             </div>
                             ` : ''}
                         </div>
+
+                        <!-- Trend Analysis Section -->
+                        ${dashboardData.hourly_ml.last_signal?.trend_z_score !== undefined ? `
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(156,39,176,0.2); border-radius: 8px; border: 1px solid rgba(156,39,176,0.4);">
+                            <h3 style="margin: 0 0 15px 0; color: #ce93d8;">📈 Análisis de Tendencias (V2)</h3>
+                            <div class="stats-grid">
+                                <div class="stat-card neutral">
+                                    <div class="value">${dashboardData.hourly_ml.last_signal.trend_z_score?.toFixed(2) || 0}</div>
+                                    <div class="label">Trend Z-Score</div>
+                                </div>
+                                <div class="stat-card ${dashboardData.hourly_ml.last_signal.combined_score > 0.8 ? 'positive' : dashboardData.hourly_ml.last_signal.combined_score < -0.8 ? 'negative' : 'neutral'}">
+                                    <div class="value">${dashboardData.hourly_ml.last_signal.combined_score?.toFixed(2) || 0}</div>
+                                    <div class="label">Score Combinado</div>
+                                </div>
+                                <div class="stat-card ${dashboardData.hourly_ml.last_signal.trend_consensus >= 3 ? 'positive' : dashboardData.hourly_ml.last_signal.trend_consensus <= -3 ? 'negative' : 'neutral'}">
+                                    <div class="value">${dashboardData.hourly_ml.last_signal.trend_consensus || 0}</div>
+                                    <div class="label">Consenso Tendencias</div>
+                                </div>
+                            </div>
+                            ${dashboardData.hourly_ml.last_signal.recommendation ? `
+                            <p style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.9em;">
+                                <strong>💡 Recomendación:</strong> ${dashboardData.hourly_ml.last_signal.recommendation}
+                            </p>
+                            ` : ''}
+                            ${dashboardData.hourly_ml.last_signal.top_indicator_trends && Object.keys(dashboardData.hourly_ml.last_signal.top_indicator_trends).length > 0 ? `
+                            <div style="margin-top: 10px;">
+                                <strong style="font-size: 0.85em; color: #b39ddb;">Top Indicadores:</strong>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                                    ${Object.entries(dashboardData.hourly_ml.last_signal.top_indicator_trends).slice(0, 5).map(([k, v]) => `
+                                        <span style="background: ${v > 0 ? 'rgba(76,175,80,0.3)' : v < 0 ? 'rgba(244,67,54,0.3)' : 'rgba(255,255,255,0.1)'}; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                            ${k}: ${v > 0 ? '+' : ''}${v.toFixed(2)}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        ` : ''}
+
                         <p style="color: #90caf9; margin-top: 15px; font-size: 0.85em;">
                             Algoritmo: <strong>${dashboardData.hourly_ml.algorithm || 'V1'}</strong> |
                             Última actualización: ${dashboardData.hourly_ml.last_update ? new Date(dashboardData.hourly_ml.last_update).toLocaleString() : '-'} |
