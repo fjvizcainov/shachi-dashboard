@@ -1433,10 +1433,18 @@
                             ` : ''}
                         </div>
 
-                        <!-- Trend Analysis Section -->
+                        <!-- Trend Analysis Section (V3) -->
                         ${dashboardData.hourly_ml.last_signal?.trend_z_score !== undefined ? `
                         <div style="margin-top: 20px; padding: 15px; background: rgba(156,39,176,0.2); border-radius: 8px; border: 1px solid rgba(156,39,176,0.4);">
-                            <h3 style="margin: 0 0 15px 0; color: #ce93d8;">📈 Análisis de Tendencias (V2)</h3>
+                            <h3 style="margin: 0 0 15px 0; color: #ce93d8;">📈 Análisis de Tendencias (V3 Dynamic)</h3>
+
+                            <!-- Blocked Warning -->
+                            ${dashboardData.hourly_ml.last_signal.blocked_reason ? `
+                            <div style="background: rgba(244,67,54,0.3); padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid rgba(244,67,54,0.5);">
+                                <strong>⚠️ BLOQUEADO:</strong> ${dashboardData.hourly_ml.last_signal.blocked_reason}
+                            </div>
+                            ` : ''}
+
                             <div class="stats-grid">
                                 <div class="stat-card neutral">
                                     <div class="value">${dashboardData.hourly_ml.last_signal.trend_z_score?.toFixed(2) || 0}</div>
@@ -1451,6 +1459,59 @@
                                     <div class="label">Consenso Tendencias</div>
                                 </div>
                             </div>
+
+                            <!-- V3: Market Regime -->
+                            ${dashboardData.hourly_ml.last_signal.market_regime && Object.keys(dashboardData.hourly_ml.last_signal.market_regime).length > 0 ? `
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(33,150,243,0.2); border-radius: 4px;">
+                                <strong style="font-size: 0.85em; color: #90caf9;">🌡️ Régimen de Mercado:</strong>
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
+                                    <span style="background: ${dashboardData.hourly_ml.last_signal.market_regime.volatility === 'extreme' ? 'rgba(244,67,54,0.4)' : dashboardData.hourly_ml.last_signal.market_regime.volatility === 'high' ? 'rgba(255,152,0,0.4)' : 'rgba(76,175,80,0.3)'}; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        Vol: ${dashboardData.hourly_ml.last_signal.market_regime.volatility || 'normal'} (${dashboardData.hourly_ml.last_signal.market_regime.volatility_percentile?.toFixed(0) || 50}%ile)
+                                    </span>
+                                    <span style="background: ${dashboardData.hourly_ml.last_signal.market_regime.trend_1h === 'bullish' ? 'rgba(76,175,80,0.3)' : dashboardData.hourly_ml.last_signal.market_regime.trend_1h === 'bearish' ? 'rgba(244,67,54,0.3)' : 'rgba(255,255,255,0.1)'}; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        Trend: ${dashboardData.hourly_ml.last_signal.market_regime.trend_1h || 'neutral'}
+                                    </span>
+                                    <span style="background: ${dashboardData.hourly_ml.last_signal.market_regime.price_vs_sma50 > 0 ? 'rgba(76,175,80,0.3)' : 'rgba(244,67,54,0.3)'}; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        vs SMA50: ${dashboardData.hourly_ml.last_signal.market_regime.price_vs_sma50 > 0 ? '+' : ''}${dashboardData.hourly_ml.last_signal.market_regime.price_vs_sma50?.toFixed(2) || 0}%
+                                    </span>
+                                    <span style="background: ${dashboardData.hourly_ml.last_signal.market_regime.recent_drawdown > 5 ? 'rgba(244,67,54,0.4)' : 'rgba(255,255,255,0.1)'}; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        DD: ${dashboardData.hourly_ml.last_signal.market_regime.recent_drawdown?.toFixed(1) || 0}%
+                                    </span>
+                                    ${dashboardData.hourly_ml.last_signal.market_regime.consecutive_losses > 0 ? `
+                                    <span style="background: rgba(244,67,54,0.4); padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        ⚠️ ${dashboardData.hourly_ml.last_signal.market_regime.consecutive_losses} pérdidas consecutivas
+                                    </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+
+                            <!-- V3: Dynamic Thresholds -->
+                            ${dashboardData.hourly_ml.last_signal.dynamic_thresholds && Object.keys(dashboardData.hourly_ml.last_signal.dynamic_thresholds).length > 0 ? `
+                            <div style="margin-top: 10px; padding: 10px; background: rgba(255,152,0,0.2); border-radius: 4px;">
+                                <strong style="font-size: 0.85em; color: #ffb74d;">⚙️ Umbrales Dinámicos:</strong>
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
+                                    <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        Long: ${dashboardData.hourly_ml.last_signal.dynamic_thresholds.threshold_long?.toFixed(2) || 0.8}
+                                    </span>
+                                    <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        Short: ${dashboardData.hourly_ml.last_signal.dynamic_thresholds.threshold_short?.toFixed(2) || 1.5}
+                                    </span>
+                                    <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        Consenso min: ${dashboardData.hourly_ml.last_signal.dynamic_thresholds.min_consensus || 3}
+                                    </span>
+                                    <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">
+                                        Max Lev: ${dashboardData.hourly_ml.last_signal.dynamic_thresholds.max_leverage || 2.0}x
+                                    </span>
+                                </div>
+                                ${dashboardData.hourly_ml.last_signal.dynamic_thresholds.reason && dashboardData.hourly_ml.last_signal.dynamic_thresholds.reason !== 'normal' ? `
+                                <div style="margin-top: 5px; font-size: 0.75em; color: #ffb74d;">
+                                    Ajustado por: ${dashboardData.hourly_ml.last_signal.dynamic_thresholds.reason}
+                                </div>
+                                ` : ''}
+                            </div>
+                            ` : ''}
+
                             ${dashboardData.hourly_ml.last_signal.recommendation ? `
                             <p style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.9em;">
                                 <strong>💡 Recomendación:</strong> ${dashboardData.hourly_ml.last_signal.recommendation}
