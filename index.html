@@ -20,24 +20,17 @@
             --accent-purple: #a371f7;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             padding: 20px;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1400px; margin: 0 auto; }
 
         header {
             display: flex;
@@ -48,25 +41,10 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            font-size: 32px;
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .version {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { font-size: 32px; }
+        h1 { font-size: 24px; font-weight: 600; }
+        .version { color: var(--text-secondary); font-size: 14px; }
 
         .status-indicator {
             display: flex;
@@ -85,37 +63,22 @@
             animation: pulse 2s infinite;
         }
 
+        .status-dot.inactive { background: var(--accent-red); animation: none; }
+        .status-dot.connecting { background: var(--accent-yellow); }
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
 
-        .status-dot.inactive {
-            background: var(--accent-red);
-            animation: none;
-        }
-
-        .grid {
-            display: grid;
-            gap: 20px;
-        }
-
-        .grid-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .grid-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .grid-4 {
-            grid-template-columns: repeat(4, 1fr);
-        }
+        .grid { display: grid; gap: 20px; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
 
         @media (max-width: 1024px) {
             .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
         }
-
         @media (max-width: 768px) {
             .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
         }
@@ -149,46 +112,17 @@
             background: var(--bg-tertiary);
         }
 
-        .card-badge.oos {
-            background: var(--accent-blue);
-            color: white;
-        }
+        .card-badge.oos { background: var(--accent-blue); color: white; }
+        .card-badge.live { background: var(--accent-green); color: white; }
+        .card-badge.paper { background: var(--accent-yellow); color: black; }
 
-        .card-badge.live {
-            background: var(--accent-green);
-            color: white;
-        }
-
-        .metric {
-            margin-bottom: 16px;
-        }
-
-        .metric:last-child {
-            margin-bottom: 0;
-        }
-
-        .metric-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-
-        .metric-value {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .metric-value.small {
-            font-size: 18px;
-        }
-
-        .metric-value.positive {
-            color: var(--accent-green);
-        }
-
-        .metric-value.negative {
-            color: var(--accent-red);
-        }
+        .metric { margin-bottom: 16px; }
+        .metric:last-child { margin-bottom: 0; }
+        .metric-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+        .metric-value { font-size: 24px; font-weight: 600; }
+        .metric-value.small { font-size: 18px; }
+        .metric-value.positive { color: var(--accent-green); }
+        .metric-value.negative { color: var(--accent-red); }
 
         .metric-row {
             display: flex;
@@ -196,14 +130,8 @@
             padding: 8px 0;
             border-bottom: 1px solid var(--border);
         }
-
-        .metric-row:last-child {
-            border-bottom: none;
-        }
-
-        .metric-row-label {
-            color: var(--text-secondary);
-        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-row-label { color: var(--text-secondary); }
 
         .position-box {
             padding: 16px;
@@ -212,50 +140,15 @@
             text-align: center;
         }
 
-        .position-direction {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
+        .position-direction { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .position-direction.long { color: var(--accent-green); }
+        .position-direction.short { color: var(--accent-red); }
+        .position-details { font-size: 13px; color: var(--text-secondary); }
+        .no-position { text-align: center; padding: 40px; color: var(--text-secondary); }
 
-        .position-direction.long {
-            color: var(--accent-green);
-        }
-
-        .position-direction.short {
-            color: var(--accent-red);
-        }
-
-        .position-details {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .no-position {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-        }
-
-        /* Exit Breakdown Chart */
-        .exit-bar-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .exit-bar-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .exit-bar-label {
-            width: 100px;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
+        .exit-bar-container { display: flex; flex-direction: column; gap: 8px; }
+        .exit-bar-row { display: flex; align-items: center; gap: 12px; }
+        .exit-bar-label { width: 100px; font-size: 12px; color: var(--text-secondary); }
         .exit-bar-track {
             flex: 1;
             height: 20px;
@@ -263,42 +156,14 @@
             border-radius: 4px;
             overflow: hidden;
         }
+        .exit-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .exit-bar-fill.trailing { background: var(--accent-green); }
+        .exit-bar-fill.stoploss { background: var(--accent-red); }
+        .exit-bar-fill.time { background: var(--accent-yellow); }
+        .exit-bar-fill.regime { background: var(--accent-purple); }
+        .exit-bar-value { width: 40px; text-align: right; font-size: 12px; }
 
-        .exit-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-
-        .exit-bar-fill.trailing {
-            background: var(--accent-green);
-        }
-
-        .exit-bar-fill.stoploss {
-            background: var(--accent-red);
-        }
-
-        .exit-bar-fill.time {
-            background: var(--accent-yellow);
-        }
-
-        .exit-bar-fill.regime {
-            background: var(--accent-purple);
-        }
-
-        .exit-bar-value {
-            width: 40px;
-            text-align: right;
-            font-size: 12px;
-        }
-
-        /* Trades Table */
-        .trades-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
+        .trades-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .trades-table th {
             text-align: left;
             padding: 12px 8px;
@@ -306,15 +171,8 @@
             color: var(--text-secondary);
             font-weight: 500;
         }
-
-        .trades-table td {
-            padding: 12px 8px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .trades-table tr:hover {
-            background: var(--bg-tertiary);
-        }
+        .trades-table td { padding: 12px 8px; border-bottom: 1px solid var(--border); }
+        .trades-table tr:hover { background: var(--bg-tertiary); }
 
         .trade-direction {
             padding: 2px 8px;
@@ -322,44 +180,23 @@
             font-size: 11px;
             font-weight: 600;
         }
+        .trade-direction.long { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .trade-direction.short { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); }
 
-        .trade-direction.long {
-            background: rgba(63, 185, 80, 0.2);
-            color: var(--accent-green);
-        }
+        .config-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .config-item { padding: 8px 12px; background: var(--bg-tertiary); border-radius: 4px; }
+        .config-label { font-size: 11px; color: var(--text-secondary); }
+        .config-value { font-size: 14px; font-weight: 500; }
 
-        .trade-direction.short {
-            background: rgba(248, 81, 73, 0.2);
-            color: var(--accent-red);
-        }
+        .last-update { text-align: center; padding: 16px; color: var(--text-secondary); font-size: 12px; }
 
-        .config-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .config-item {
-            padding: 8px 12px;
+        .feature-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .feature-tag {
+            padding: 4px 10px;
             background: var(--bg-tertiary);
             border-radius: 4px;
-        }
-
-        .config-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-
-        .config-value {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .last-update {
-            text-align: center;
-            padding: 16px;
-            color: var(--text-secondary);
             font-size: 12px;
+            color: var(--accent-blue);
         }
 
         .realistic-note {
@@ -370,34 +207,7 @@
             font-size: 11px;
             color: var(--text-secondary);
         }
-
-        .realistic-note strong {
-            color: var(--accent-blue);
-        }
-
-        /* Feature list */
-        .feature-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .feature-tag {
-            padding: 4px 10px;
-            background: var(--bg-tertiary);
-            border-radius: 4px;
-            font-size: 12px;
-            color: var(--accent-blue);
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin: 24px 0 16px 0;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
+        .realistic-note strong { color: var(--accent-blue); }
 
         footer {
             text-align: center;
@@ -407,15 +217,18 @@
             color: var(--text-secondary);
             font-size: 12px;
         }
+        footer a { color: var(--accent-blue); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
 
-        footer a {
-            color: var(--accent-blue);
-            text-decoration: none;
+        .error-banner {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: none;
         }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
+        .error-banner.visible { display: block; }
     </style>
 </head>
 <body>
@@ -425,262 +238,110 @@
                 <span class="logo-icon">🐋</span>
                 <div>
                     <h1>Shachi Trading System</h1>
-                    <span class="version">V5.0.0 - Simplified</span>
+                    <span class="version">V5.0.0 - Alpaca + Grok AI</span>
                 </div>
             </div>
             <div class="status-indicator">
-                <div class="status-dot" id="status-dot"></div>
-                <span id="status-text">Paper Trading</span>
+                <div class="status-dot connecting" id="status-dot"></div>
+                <span id="status-text">Connecting...</span>
             </div>
         </header>
+
+        <div class="error-banner" id="error-banner">
+            <strong>Connection Error:</strong> <span id="error-message">Unable to connect to trading server</span>
+        </div>
 
         <!-- Row 1: Key Stats -->
         <div class="grid grid-4" style="margin-bottom: 20px;">
             <div class="card">
                 <div class="metric">
-                    <div class="metric-label">Current Equity</div>
-                    <div class="metric-value positive" id="equity">$10,426.35</div>
+                    <div class="metric-label">Portfolio Value</div>
+                    <div class="metric-value" id="equity">--</div>
                 </div>
             </div>
             <div class="card">
                 <div class="metric">
-                    <div class="metric-label">Total Return</div>
-                    <div class="metric-value positive" id="total-return">+4.26%</div>
+                    <div class="metric-label">Cash Available</div>
+                    <div class="metric-value" id="cash">--</div>
                 </div>
             </div>
             <div class="card">
                 <div class="metric">
-                    <div class="metric-label">Win Rate</div>
-                    <div class="metric-value" id="win-rate">57.4%</div>
+                    <div class="metric-label">Buying Power</div>
+                    <div class="metric-value" id="buying-power">--</div>
                 </div>
             </div>
             <div class="card">
                 <div class="metric">
-                    <div class="metric-label">Profit Factor</div>
-                    <div class="metric-value" id="profit-factor">1.23</div>
+                    <div class="metric-label">Day Trades</div>
+                    <div class="metric-value" id="day-trades">--</div>
                 </div>
             </div>
         </div>
 
-        <!-- Row 2: System Status + Current Position + OOS Metrics -->
-        <div class="grid grid-3" style="margin-bottom: 20px;">
-            <!-- System Status -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">System Status</span>
-                    <span class="card-badge live">Live</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Trading</span>
-                    <span style="color: var(--accent-green);">Enabled</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Regime</span>
-                    <span>Normal</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Circuit Breaker</span>
-                    <span style="color: var(--accent-green);">OK</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Model Version</span>
-                    <span>v5.0.0</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Features</span>
-                    <span>12</span>
-                </div>
-            </div>
-
-            <!-- Current Position -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Current Position</span>
-                </div>
-                <div id="position-container">
-                    <div class="position-box">
-                        <div class="position-direction long">LONG</div>
-                        <div class="position-details">
-                            Symbol: SPY<br>
-                            Entry: $567.23<br>
-                            Current: $571.45<br>
-                            P&L: <span style="color: var(--accent-green);">+$422.00 (+0.74%)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Equity -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Account</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Peak Equity</span>
-                    <span>$10,512.00</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Drawdown</span>
-                    <span style="color: var(--accent-yellow);">-0.81%</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Daily P&L</span>
-                    <span style="color: var(--accent-green);">+$127.50</span>
-                </div>
-                <div class="metric-row">
-                    <span class="metric-row-label">Total Trades</span>
-                    <span>101</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Row 3: OOS Metrics + Exit Breakdown -->
+        <!-- Row 2: Positions + Orders -->
         <div class="grid grid-2" style="margin-bottom: 20px;">
-            <!-- OOS Metrics -->
+            <!-- Live Positions -->
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">OOS Metrics</span>
-                    <span class="card-badge oos">Walk-Forward Only</span>
+                    <span class="card-title">Live Positions</span>
+                    <span class="card-badge paper" id="mode-badge">Paper</span>
                 </div>
-                <div class="grid grid-2">
-                    <div class="metric">
-                        <div class="metric-label">Direction Accuracy</div>
-                        <div class="metric-value small">52.3%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Win Rate</div>
-                        <div class="metric-value small">57.4%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Profit Factor</div>
-                        <div class="metric-value small">1.23</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Max Drawdown</div>
-                        <div class="metric-value small">-8.2%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Monthly Return</div>
-                        <div class="metric-value small positive">+1.4%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Sharpe Ratio</div>
-                        <div class="metric-value small">1.65</div>
-                    </div>
-                </div>
-                <div class="realistic-note">
-                    <strong>Realistic Ranges:</strong> Dir. Acc: 51-55% | Win Rate: 45-55% | PF: 1.1-1.3 | Monthly: 0.5-2%
+                <div id="positions-container">
+                    <div class="no-position">Loading positions...</div>
                 </div>
             </div>
 
-            <!-- Exit Breakdown -->
+            <!-- Pending Orders -->
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Exit Breakdown</span>
-                    <span class="card-badge">Target: >40% Trailing</span>
+                    <span class="card-title">Pending Orders</span>
                 </div>
-                <div class="exit-bar-container">
-                    <div class="exit-bar-row">
-                        <span class="exit-bar-label">Trailing Stop</span>
-                        <div class="exit-bar-track">
-                            <div class="exit-bar-fill trailing" style="width: 45%"></div>
-                        </div>
-                        <span class="exit-bar-value">45%</span>
-                    </div>
-                    <div class="exit-bar-row">
-                        <span class="exit-bar-label">Stop Loss</span>
-                        <div class="exit-bar-track">
-                            <div class="exit-bar-fill stoploss" style="width: 28%"></div>
-                        </div>
-                        <span class="exit-bar-value">28%</span>
-                    </div>
-                    <div class="exit-bar-row">
-                        <span class="exit-bar-label">Time Stop</span>
-                        <div class="exit-bar-track">
-                            <div class="exit-bar-fill time" style="width: 18%"></div>
-                        </div>
-                        <span class="exit-bar-value">18%</span>
-                    </div>
-                    <div class="exit-bar-row">
-                        <span class="exit-bar-label">Regime Change</span>
-                        <div class="exit-bar-track">
-                            <div class="exit-bar-fill regime" style="width: 9%"></div>
-                        </div>
-                        <span class="exit-bar-value">9%</span>
-                    </div>
+                <div id="orders-container">
+                    <div class="no-position">Loading orders...</div>
                 </div>
             </div>
         </div>
 
-        <!-- Row 4: Recent Trades -->
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="card-header">
-                <span class="card-title">Recent Trades</span>
-                <span class="card-badge">Last 30 days</span>
+        <!-- Row 3: Trading Signals + Account -->
+        <div class="grid grid-2" style="margin-bottom: 20px;">
+            <!-- Current Signal -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Current Signal (Grok AI)</span>
+                    <span class="card-badge oos">SPY</span>
+                </div>
+                <div id="signal-container">
+                    <div class="position-box">
+                        <div class="position-direction" id="signal-direction">--</div>
+                        <div class="position-details" id="signal-details">
+                            Loading signal...
+                        </div>
+                    </div>
+                </div>
             </div>
-            <table class="trades-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Symbol</th>
-                        <th>Direction</th>
-                        <th>Entry</th>
-                        <th>Exit</th>
-                        <th>P&L</th>
-                        <th>Exit Type</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Mar 2, 14:32</td>
-                        <td>SPY</td>
-                        <td><span class="trade-direction long">LONG</span></td>
-                        <td>$565.20</td>
-                        <td>$568.45</td>
-                        <td style="color: var(--accent-green);">+$325.00</td>
-                        <td>Trailing Stop</td>
-                    </tr>
-                    <tr>
-                        <td>Mar 2, 10:15</td>
-                        <td>QQQ</td>
-                        <td><span class="trade-direction short">SHORT</span></td>
-                        <td>$492.80</td>
-                        <td>$494.10</td>
-                        <td style="color: var(--accent-red);">-$130.00</td>
-                        <td>Stop Loss</td>
-                    </tr>
-                    <tr>
-                        <td>Mar 1, 15:45</td>
-                        <td>SPY</td>
-                        <td><span class="trade-direction long">LONG</span></td>
-                        <td>$563.50</td>
-                        <td>$567.20</td>
-                        <td style="color: var(--accent-green);">+$370.00</td>
-                        <td>Trailing Stop</td>
-                    </tr>
-                    <tr>
-                        <td>Mar 1, 11:20</td>
-                        <td>NVDA</td>
-                        <td><span class="trade-direction long">LONG</span></td>
-                        <td>$875.30</td>
-                        <td>$882.15</td>
-                        <td style="color: var(--accent-green);">+$137.00</td>
-                        <td>Trailing Stop</td>
-                    </tr>
-                    <tr>
-                        <td>Feb 29, 14:00</td>
-                        <td>XLF</td>
-                        <td><span class="trade-direction short">SHORT</span></td>
-                        <td>$42.85</td>
-                        <td>$42.30</td>
-                        <td style="color: var(--accent-green);">+$220.00</td>
-                        <td>Time Stop</td>
-                    </tr>
-                </tbody>
-            </table>
+
+            <!-- Account Status -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Account Status</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Trading Status</span>
+                    <span id="trading-status">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Pattern Day Trader</span>
+                    <span id="pdt-status">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Last Update</span>
+                    <span id="account-update">--</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Row 5: Configuration + Features -->
+        <!-- Row 4: Configuration -->
         <div class="grid grid-2" style="margin-bottom: 20px;">
             <div class="card">
                 <div class="card-header">
@@ -717,7 +378,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Selected Features (12)</span>
+                    <span class="card-title">Features (12)</span>
                     <span class="card-badge">Proven Edge</span>
                 </div>
                 <div class="feature-list">
@@ -734,19 +395,16 @@
                     <span class="feature-tag">ret_24h</span>
                     <span class="feature-tag">price_vs_vwap</span>
                 </div>
-                <div class="realistic-note" style="margin-top: 16px;">
-                    <strong>Feature Categories:</strong><br>
-                    Microstructure (6) | Volatility/Regime (3) | Momentum (3)
-                </div>
             </div>
         </div>
 
         <div class="last-update">
-            Last updated: <span id="last-update"></span>
+            Last updated: <span id="last-update">--</span> |
+            Server: <span id="server-url">--</span>
         </div>
 
         <footer>
-            <p>Shachi V5 Trading System - Simplified, Disciplined, Profitable</p>
+            <p>Shachi V5 Trading System - Alpaca Paper Trading + Grok AI</p>
             <p style="margin-top: 8px;">
                 <a href="https://github.com/fjvizcainov/shachi-dashboard">GitHub</a>
             </p>
@@ -754,14 +412,241 @@
     </div>
 
     <script>
-        // Update timestamp
-        document.getElementById('last-update').textContent = new Date().toLocaleString();
+        // Configuration - UPDATE THIS URL when you deploy the backend
+        const API_BASE = 'https://shachi-api.onrender.com';  // Your deployed server URL
 
-        // Simulate live updates (for demo)
-        setInterval(() => {
+        // Fallback to localhost for development
+        const API_URLS = [
+            API_BASE,
+            'http://localhost:5002'
+        ];
+
+        let currentApiUrl = null;
+        let isConnected = false;
+
+        // Format currency
+        function formatCurrency(value) {
+            if (value === null || value === undefined || isNaN(value)) return '--';
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+            }).format(value);
+        }
+
+        // Format percentage
+        function formatPct(value) {
+            if (value === null || value === undefined || isNaN(value)) return '--';
+            const sign = value >= 0 ? '+' : '';
+            return `${sign}${value.toFixed(2)}%`;
+        }
+
+        // Update connection status
+        function updateStatus(connected, message) {
             const dot = document.getElementById('status-dot');
-            dot.style.opacity = dot.style.opacity === '0.5' ? '1' : '0.5';
-        }, 1000);
+            const text = document.getElementById('status-text');
+            const banner = document.getElementById('error-banner');
+
+            isConnected = connected;
+
+            if (connected) {
+                dot.className = 'status-dot';
+                text.textContent = message || 'Connected';
+                banner.classList.remove('visible');
+            } else {
+                dot.className = 'status-dot inactive';
+                text.textContent = 'Disconnected';
+                banner.classList.add('visible');
+                document.getElementById('error-message').textContent = message || 'Unable to connect';
+            }
+        }
+
+        // Try to connect to available APIs
+        async function findWorkingApi() {
+            for (const url of API_URLS) {
+                try {
+                    const res = await fetch(`${url}/api/status`, {
+                        mode: 'cors',
+                        timeout: 5000
+                    });
+                    if (res.ok) {
+                        currentApiUrl = url;
+                        document.getElementById('server-url').textContent = url;
+                        return true;
+                    }
+                } catch (e) {
+                    console.log(`Failed to connect to ${url}:`, e.message);
+                }
+            }
+            return false;
+        }
+
+        // Fetch account data
+        async function fetchAccount() {
+            if (!currentApiUrl) return;
+
+            try {
+                const res = await fetch(`${currentApiUrl}/api/account`);
+                const data = await res.json();
+
+                if (data.error) throw new Error(data.error);
+
+                document.getElementById('equity').textContent = formatCurrency(data.portfolio_value || data.equity);
+                document.getElementById('cash').textContent = formatCurrency(data.cash);
+                document.getElementById('buying-power').textContent = formatCurrency(data.buying_power);
+                document.getElementById('day-trades').textContent = data.day_trade_count || '0';
+
+                const tradingStatus = document.getElementById('trading-status');
+                tradingStatus.textContent = data.trading_blocked ? 'BLOCKED' : 'Active';
+                tradingStatus.style.color = data.trading_blocked ? 'var(--accent-red)' : 'var(--accent-green)';
+
+                const pdtStatus = document.getElementById('pdt-status');
+                pdtStatus.textContent = data.pattern_day_trader ? 'Yes' : 'No';
+                pdtStatus.style.color = data.pattern_day_trader ? 'var(--accent-yellow)' : 'var(--accent-green)';
+
+                document.getElementById('account-update').textContent = new Date(data.timestamp).toLocaleTimeString();
+
+                updateStatus(true, 'Paper Trading');
+                document.getElementById('mode-badge').textContent = 'Paper';
+
+            } catch (e) {
+                console.error('Account fetch error:', e);
+            }
+        }
+
+        // Fetch positions
+        async function fetchPositions() {
+            if (!currentApiUrl) return;
+
+            try {
+                const res = await fetch(`${currentApiUrl}/api/positions`);
+                const positions = await res.json();
+
+                const container = document.getElementById('positions-container');
+
+                if (!positions || positions.length === 0) {
+                    container.innerHTML = '<div class="no-position">No open positions</div>';
+                    return;
+                }
+
+                container.innerHTML = positions.map(pos => {
+                    const pnlClass = pos.unrealized_pnl >= 0 ? 'positive' : 'negative';
+                    const dirClass = pos.side.toLowerCase();
+                    return `
+                        <div class="position-box" style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span class="trade-direction ${dirClass}">${pos.side}</span>
+                                    <strong style="margin-left: 8px;">${pos.symbol}</strong>
+                                    <span style="color: var(--text-secondary); margin-left: 8px;">${pos.qty} shares</span>
+                                </div>
+                                <div class="${pnlClass}" style="font-weight: 600;">
+                                    ${formatCurrency(pos.unrealized_pnl)} (${formatPct(pos.unrealized_pnl_pct)})
+                                </div>
+                            </div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                                Entry: ${formatCurrency(pos.entry_price)} → Current: ${formatCurrency(pos.current_price)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                console.error('Positions fetch error:', e);
+            }
+        }
+
+        // Fetch orders
+        async function fetchOrders() {
+            if (!currentApiUrl) return;
+
+            try {
+                const res = await fetch(`${currentApiUrl}/api/orders`);
+                const orders = await res.json();
+
+                const container = document.getElementById('orders-container');
+
+                if (!orders || orders.length === 0) {
+                    container.innerHTML = '<div class="no-position">No pending orders</div>';
+                    return;
+                }
+
+                container.innerHTML = orders.map(order => {
+                    const dirClass = order.side.toLowerCase();
+                    return `
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+                            <span class="trade-direction ${dirClass}">${order.side}</span>
+                            <strong style="margin-left: 8px;">${order.symbol}</strong>
+                            <span style="margin-left: 8px;">${order.qty} @ ${order.limit_price ? formatCurrency(order.limit_price) : 'MKT'}</span>
+                            <span style="float: right; color: var(--text-secondary);">${order.status}</span>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                console.error('Orders fetch error:', e);
+            }
+        }
+
+        // Fetch signals
+        async function fetchSignals() {
+            if (!currentApiUrl) return;
+
+            try {
+                const res = await fetch(`${currentApiUrl}/api/signals`);
+                const signal = await res.json();
+
+                const direction = document.getElementById('signal-direction');
+                const details = document.getElementById('signal-details');
+
+                direction.textContent = signal.signal || 'NEUTRAL';
+                direction.className = 'position-direction';
+                if (signal.signal === 'LONG') direction.classList.add('long');
+                else if (signal.signal === 'SHORT') direction.classList.add('short');
+
+                details.innerHTML = `
+                    Confidence: ${signal.confidence || 0}%<br>
+                    Price: ${formatCurrency(signal.price)}<br>
+                    ${signal.reasons ? signal.reasons.join(' | ') : ''}
+                `;
+
+            } catch (e) {
+                console.error('Signals fetch error:', e);
+            }
+        }
+
+        // Main update function
+        async function updateDashboard() {
+            if (!currentApiUrl) {
+                const found = await findWorkingApi();
+                if (!found) {
+                    updateStatus(false, 'No server available. Deploy backend to enable live data.');
+                    return;
+                }
+            }
+
+            await Promise.all([
+                fetchAccount(),
+                fetchPositions(),
+                fetchOrders(),
+                fetchSignals()
+            ]);
+
+            document.getElementById('last-update').textContent = new Date().toLocaleString();
+        }
+
+        // Initialize
+        async function init() {
+            updateStatus(false, 'Connecting...');
+            document.getElementById('status-dot').className = 'status-dot connecting';
+            document.getElementById('status-text').textContent = 'Connecting...';
+
+            await updateDashboard();
+
+            // Refresh every 10 seconds
+            setInterval(updateDashboard, 10000);
+        }
+
+        init();
     </script>
 </body>
 </html>
