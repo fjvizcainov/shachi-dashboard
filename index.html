@@ -146,34 +146,6 @@
         .position-details { font-size: 13px; color: var(--text-secondary); }
         .no-position { text-align: center; padding: 40px; color: var(--text-secondary); }
 
-        .exit-bar-container { display: flex; flex-direction: column; gap: 8px; }
-        .exit-bar-row { display: flex; align-items: center; gap: 12px; }
-        .exit-bar-label { width: 100px; font-size: 12px; color: var(--text-secondary); }
-        .exit-bar-track {
-            flex: 1;
-            height: 20px;
-            background: var(--bg-tertiary);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .exit-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
-        .exit-bar-fill.trailing { background: var(--accent-green); }
-        .exit-bar-fill.stoploss { background: var(--accent-red); }
-        .exit-bar-fill.time { background: var(--accent-yellow); }
-        .exit-bar-fill.regime { background: var(--accent-purple); }
-        .exit-bar-value { width: 40px; text-align: right; font-size: 12px; }
-
-        .trades-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .trades-table th {
-            text-align: left;
-            padding: 12px 8px;
-            border-bottom: 2px solid var(--border);
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .trades-table td { padding: 12px 8px; border-bottom: 1px solid var(--border); }
-        .trades-table tr:hover { background: var(--bg-tertiary); }
-
         .trade-direction {
             padding: 2px 8px;
             border-radius: 4px;
@@ -199,16 +171,6 @@
             color: var(--accent-blue);
         }
 
-        .realistic-note {
-            margin-top: 12px;
-            padding: 12px;
-            background: var(--bg-tertiary);
-            border-radius: 4px;
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-        .realistic-note strong { color: var(--accent-blue); }
-
         footer {
             text-align: center;
             padding: 24px;
@@ -219,16 +181,6 @@
         }
         footer a { color: var(--accent-blue); text-decoration: none; }
         footer a:hover { text-decoration: underline; }
-
-        .error-banner {
-            background: rgba(248, 81, 73, 0.1);
-            border: 1px solid var(--accent-red);
-            border-radius: 6px;
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        .error-banner.visible { display: block; }
     </style>
 </head>
 <body>
@@ -243,13 +195,9 @@
             </div>
             <div class="status-indicator">
                 <div class="status-dot connecting" id="status-dot"></div>
-                <span id="status-text">Connecting...</span>
+                <span id="status-text">Loading...</span>
             </div>
         </header>
-
-        <div class="error-banner" id="error-banner">
-            <strong>Connection Error:</strong> <span id="error-message">Unable to connect to trading server</span>
-        </div>
 
         <!-- Row 1: Key Stats -->
         <div class="grid grid-4" style="margin-bottom: 20px;">
@@ -335,8 +283,12 @@
                     <span id="pdt-status">--</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-row-label">Last Update</span>
-                    <span id="account-update">--</span>
+                    <span class="metric-row-label">System Mode</span>
+                    <span id="system-mode">--</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Last Sync</span>
+                    <span id="last-sync">--</span>
                 </div>
             </div>
         </div>
@@ -399,8 +351,7 @@
         </div>
 
         <div class="last-update">
-            Last updated: <span id="last-update">--</span> |
-            Server: <span id="server-url">--</span>
+            Data synced every 60 seconds from local trading server
         </div>
 
         <footer>
@@ -412,241 +363,136 @@
     </div>
 
     <script>
-        // Configuration - UPDATE THIS URL when you deploy the backend
-        const API_BASE = 'https://shachi-api.onrender.com';  // Your deployed server URL
+        // Load data from static JSON file (synced from local server)
+        const DATA_URL = 'data.json';
 
-        // Fallback to localhost for development
-        const API_URLS = [
-            API_BASE,
-            'http://localhost:5002'
-        ];
-
-        let currentApiUrl = null;
-        let isConnected = false;
-
-        // Format currency
         function formatCurrency(value) {
             if (value === null || value === undefined || isNaN(value)) return '--';
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-            }).format(value);
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
         }
 
-        // Format percentage
         function formatPct(value) {
             if (value === null || value === undefined || isNaN(value)) return '--';
-            const sign = value >= 0 ? '+' : '';
-            return `${sign}${value.toFixed(2)}%`;
+            return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
         }
 
-        // Update connection status
-        function updateStatus(connected, message) {
-            const dot = document.getElementById('status-dot');
-            const text = document.getElementById('status-text');
-            const banner = document.getElementById('error-banner');
-
-            isConnected = connected;
-
-            if (connected) {
-                dot.className = 'status-dot';
-                text.textContent = message || 'Connected';
-                banner.classList.remove('visible');
-            } else {
-                dot.className = 'status-dot inactive';
-                text.textContent = 'Disconnected';
-                banner.classList.add('visible');
-                document.getElementById('error-message').textContent = message || 'Unable to connect';
-            }
+        function timeSince(dateStr) {
+            const date = new Date(dateStr);
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return `${seconds}s ago`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
         }
 
-        // Try to connect to available APIs
-        async function findWorkingApi() {
-            for (const url of API_URLS) {
-                try {
-                    const res = await fetch(`${url}/api/status`, {
-                        mode: 'cors',
-                        timeout: 5000
-                    });
-                    if (res.ok) {
-                        currentApiUrl = url;
-                        document.getElementById('server-url').textContent = url;
-                        return true;
-                    }
-                } catch (e) {
-                    console.log(`Failed to connect to ${url}:`, e.message);
-                }
-            }
-            return false;
-        }
-
-        // Fetch account data
-        async function fetchAccount() {
-            if (!currentApiUrl) return;
-
+        async function loadData() {
             try {
-                const res = await fetch(`${currentApiUrl}/api/account`);
+                const res = await fetch(DATA_URL + '?t=' + Date.now());
                 const data = await res.json();
 
-                if (data.error) throw new Error(data.error);
+                if (data.status === 'connected') {
+                    // Update status
+                    document.getElementById('status-dot').className = 'status-dot';
+                    document.getElementById('status-text').textContent = 'Paper Trading';
 
-                document.getElementById('equity').textContent = formatCurrency(data.portfolio_value || data.equity);
-                document.getElementById('cash').textContent = formatCurrency(data.cash);
-                document.getElementById('buying-power').textContent = formatCurrency(data.buying_power);
-                document.getElementById('day-trades').textContent = data.day_trade_count || '0';
+                    // Account
+                    const acct = data.account || {};
+                    document.getElementById('equity').textContent = formatCurrency(acct.portfolio_value || acct.equity);
+                    document.getElementById('cash').textContent = formatCurrency(acct.cash);
+                    document.getElementById('buying-power').textContent = formatCurrency(acct.buying_power);
+                    document.getElementById('day-trades').textContent = acct.day_trade_count || '0';
 
-                const tradingStatus = document.getElementById('trading-status');
-                tradingStatus.textContent = data.trading_blocked ? 'BLOCKED' : 'Active';
-                tradingStatus.style.color = data.trading_blocked ? 'var(--accent-red)' : 'var(--accent-green)';
+                    const tradingStatus = document.getElementById('trading-status');
+                    tradingStatus.textContent = acct.trading_blocked ? 'BLOCKED' : 'Active';
+                    tradingStatus.style.color = acct.trading_blocked ? 'var(--accent-red)' : 'var(--accent-green)';
 
-                const pdtStatus = document.getElementById('pdt-status');
-                pdtStatus.textContent = data.pattern_day_trader ? 'Yes' : 'No';
-                pdtStatus.style.color = data.pattern_day_trader ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                    const pdtStatus = document.getElementById('pdt-status');
+                    pdtStatus.textContent = acct.pattern_day_trader ? 'Yes' : 'No';
+                    pdtStatus.style.color = acct.pattern_day_trader ? 'var(--accent-yellow)' : 'var(--accent-green)';
 
-                document.getElementById('account-update').textContent = new Date(data.timestamp).toLocaleTimeString();
+                    // System status
+                    const sys = data.system_status || {};
+                    document.getElementById('system-mode').textContent = sys.mode || 'paper';
+                    document.getElementById('last-sync').textContent = timeSince(data.timestamp);
 
-                updateStatus(true, 'Paper Trading');
-                document.getElementById('mode-badge').textContent = 'Paper';
-
-            } catch (e) {
-                console.error('Account fetch error:', e);
-            }
-        }
-
-        // Fetch positions
-        async function fetchPositions() {
-            if (!currentApiUrl) return;
-
-            try {
-                const res = await fetch(`${currentApiUrl}/api/positions`);
-                const positions = await res.json();
-
-                const container = document.getElementById('positions-container');
-
-                if (!positions || positions.length === 0) {
-                    container.innerHTML = '<div class="no-position">No open positions</div>';
-                    return;
-                }
-
-                container.innerHTML = positions.map(pos => {
-                    const pnlClass = pos.unrealized_pnl >= 0 ? 'positive' : 'negative';
-                    const dirClass = pos.side.toLowerCase();
-                    return `
-                        <div class="position-box" style="margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <span class="trade-direction ${dirClass}">${pos.side}</span>
-                                    <strong style="margin-left: 8px;">${pos.symbol}</strong>
-                                    <span style="color: var(--text-secondary); margin-left: 8px;">${pos.qty} shares</span>
+                    // Positions
+                    const positions = data.positions || [];
+                    const posContainer = document.getElementById('positions-container');
+                    if (positions.length === 0) {
+                        posContainer.innerHTML = '<div class="no-position">No open positions</div>';
+                    } else {
+                        posContainer.innerHTML = positions.map(pos => {
+                            const pnlClass = pos.unrealized_pnl >= 0 ? 'positive' : 'negative';
+                            const dirClass = pos.side.toLowerCase();
+                            return `
+                                <div class="position-box" style="margin-bottom: 12px; text-align: left;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <span class="trade-direction ${dirClass}">${pos.side}</span>
+                                            <strong style="margin-left: 8px;">${pos.symbol}</strong>
+                                            <span style="color: var(--text-secondary); margin-left: 8px;">${pos.qty} shares</span>
+                                        </div>
+                                        <div class="${pnlClass}" style="font-weight: 600;">
+                                            ${formatCurrency(pos.unrealized_pnl)} (${formatPct(pos.unrealized_pnl_pct)})
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                                        Entry: ${formatCurrency(pos.entry_price)} → Current: ${formatCurrency(pos.current_price)}
+                                    </div>
                                 </div>
-                                <div class="${pnlClass}" style="font-weight: 600;">
-                                    ${formatCurrency(pos.unrealized_pnl)} (${formatPct(pos.unrealized_pnl_pct)})
+                            `;
+                        }).join('');
+                    }
+
+                    // Orders
+                    const orders = data.orders || [];
+                    const ordContainer = document.getElementById('orders-container');
+                    if (orders.length === 0) {
+                        ordContainer.innerHTML = '<div class="no-position">No pending orders</div>';
+                    } else {
+                        ordContainer.innerHTML = orders.map(order => {
+                            const dirClass = order.side.toLowerCase();
+                            return `
+                                <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                    <span class="trade-direction ${dirClass}">${order.side}</span>
+                                    <strong style="margin-left: 8px;">${order.symbol}</strong>
+                                    <span style="margin-left: 8px;">${order.qty} @ ${order.limit_price ? formatCurrency(parseFloat(order.limit_price)) : 'MKT'}</span>
+                                    <span style="float: right; color: var(--text-secondary);">${order.status}</span>
                                 </div>
-                            </div>
-                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
-                                Entry: ${formatCurrency(pos.entry_price)} → Current: ${formatCurrency(pos.current_price)}
-                            </div>
-                        </div>
+                            `;
+                        }).join('');
+                    }
+
+                    // Signals
+                    const signal = data.signals || {};
+                    const sigDir = document.getElementById('signal-direction');
+                    sigDir.textContent = signal.signal || 'NEUTRAL';
+                    sigDir.className = 'position-direction';
+                    if (signal.signal === 'LONG') sigDir.classList.add('long');
+                    else if (signal.signal === 'SHORT') sigDir.classList.add('short');
+
+                    document.getElementById('signal-details').innerHTML = `
+                        Confidence: ${signal.confidence || 0}%<br>
+                        Price: ${formatCurrency(signal.price)}<br>
+                        ${signal.reasons ? signal.reasons.join(' | ') : ''}
                     `;
-                }).join('');
 
-            } catch (e) {
-                console.error('Positions fetch error:', e);
-            }
-        }
-
-        // Fetch orders
-        async function fetchOrders() {
-            if (!currentApiUrl) return;
-
-            try {
-                const res = await fetch(`${currentApiUrl}/api/orders`);
-                const orders = await res.json();
-
-                const container = document.getElementById('orders-container');
-
-                if (!orders || orders.length === 0) {
-                    container.innerHTML = '<div class="no-position">No pending orders</div>';
-                    return;
+                } else {
+                    document.getElementById('status-dot').className = 'status-dot inactive';
+                    document.getElementById('status-text').textContent = 'Offline';
+                    document.getElementById('last-sync').textContent = data.error || 'No data';
                 }
 
-                container.innerHTML = orders.map(order => {
-                    const dirClass = order.side.toLowerCase();
-                    return `
-                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
-                            <span class="trade-direction ${dirClass}">${order.side}</span>
-                            <strong style="margin-left: 8px;">${order.symbol}</strong>
-                            <span style="margin-left: 8px;">${order.qty} @ ${order.limit_price ? formatCurrency(order.limit_price) : 'MKT'}</span>
-                            <span style="float: right; color: var(--text-secondary);">${order.status}</span>
-                        </div>
-                    `;
-                }).join('');
-
             } catch (e) {
-                console.error('Orders fetch error:', e);
+                console.error('Failed to load data:', e);
+                document.getElementById('status-dot').className = 'status-dot inactive';
+                document.getElementById('status-text').textContent = 'Error';
             }
         }
 
-        // Fetch signals
-        async function fetchSignals() {
-            if (!currentApiUrl) return;
-
-            try {
-                const res = await fetch(`${currentApiUrl}/api/signals`);
-                const signal = await res.json();
-
-                const direction = document.getElementById('signal-direction');
-                const details = document.getElementById('signal-details');
-
-                direction.textContent = signal.signal || 'NEUTRAL';
-                direction.className = 'position-direction';
-                if (signal.signal === 'LONG') direction.classList.add('long');
-                else if (signal.signal === 'SHORT') direction.classList.add('short');
-
-                details.innerHTML = `
-                    Confidence: ${signal.confidence || 0}%<br>
-                    Price: ${formatCurrency(signal.price)}<br>
-                    ${signal.reasons ? signal.reasons.join(' | ') : ''}
-                `;
-
-            } catch (e) {
-                console.error('Signals fetch error:', e);
-            }
-        }
-
-        // Main update function
-        async function updateDashboard() {
-            if (!currentApiUrl) {
-                const found = await findWorkingApi();
-                if (!found) {
-                    updateStatus(false, 'No server available. Deploy backend to enable live data.');
-                    return;
-                }
-            }
-
-            await Promise.all([
-                fetchAccount(),
-                fetchPositions(),
-                fetchOrders(),
-                fetchSignals()
-            ]);
-
-            document.getElementById('last-update').textContent = new Date().toLocaleString();
-        }
-
-        // Initialize
-        async function init() {
-            updateStatus(false, 'Connecting...');
-            document.getElementById('status-dot').className = 'status-dot connecting';
-            document.getElementById('status-text').textContent = 'Connecting...';
-
-            await updateDashboard();
-
-            // Refresh every 10 seconds
-            setInterval(updateDashboard, 10000);
-        }
-
-        init();
+        // Load initially and refresh every 30 seconds
+        loadData();
+        setInterval(loadData, 30000);
     </script>
 </body>
 </html>
