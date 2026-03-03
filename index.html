@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shachi - V5 Trading System Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐋</text></svg>">
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-blue: #58a6ff;
+            --accent-yellow: #d29922;
+            --accent-purple: #a371f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .version {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-dot.inactive {
+            background: var(--accent-red);
+            animation: none;
+        }
+
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (max-width: 1024px) {
+            .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+        }
+
+        .card-badge.oos {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .card-badge.live {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .metric {
+            margin-bottom: 16px;
+        }
+
+        .metric:last-child {
+            margin-bottom: 0;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .metric-value.small {
+            font-size: 18px;
+        }
+
+        .metric-value.positive {
+            color: var(--accent-green);
+        }
+
+        .metric-value.negative {
+            color: var(--accent-red);
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-row-label {
+            color: var(--text-secondary);
+        }
+
+        .position-box {
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .position-direction {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .position-direction.long {
+            color: var(--accent-green);
+        }
+
+        .position-direction.short {
+            color: var(--accent-red);
+        }
+
+        .position-details {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .no-position {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        /* Exit Breakdown Chart */
+        .exit-bar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .exit-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .exit-bar-label {
+            width: 100px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .exit-bar-track {
+            flex: 1;
+            height: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .exit-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .exit-bar-fill.trailing {
+            background: var(--accent-green);
+        }
+
+        .exit-bar-fill.stoploss {
+            background: var(--accent-red);
+        }
+
+        .exit-bar-fill.time {
+            background: var(--accent-yellow);
+        }
+
+        .exit-bar-fill.regime {
+            background: var(--accent-purple);
+        }
+
+        .exit-bar-value {
+            width: 40px;
+            text-align: right;
+            font-size: 12px;
+        }
+
+        /* Trades Table */
+        .trades-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .trades-table th {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .trades-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .trades-table tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .trade-direction {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .trade-direction.long {
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--accent-green);
+        }
+
+        .trade-direction.short {
+            background: rgba(248, 81, 73, 0.2);
+            color: var(--accent-red);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .config-item {
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .config-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .config-value {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .last-update {
+            text-align: center;
+            padding: 16px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .realistic-note {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .realistic-note strong {
+            color: var(--accent-blue);
+        }
+
+        /* Feature list */
+        .feature-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .feature-tag {
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--accent-blue);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 24px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            margin-top: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🐋</span>
+                <div>
+                    <h1>Shachi Trading System</h1>
+                    <span class="version">V5.0.0 - Simplified</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Paper Trading</span>
+            </div>
+        </header>
+
+        <!-- Row 1: Key Stats -->
+        <div class="grid grid-4" style="margin-bottom: 20px;">
+            <div class="card">
+                <div class="metric">
+                    <div class="metric-label">Current Equity</div>
+                    <div class="metric-value positive" id="equity">$10,426.35</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="metric">
+                    <div class="metric-label">Total Return</div>
+                    <div class="metric-value positive" id="total-return">+4.26%</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="metric">
+                    <div class="metric-label">Win Rate</div>
+                    <div class="metric-value" id="win-rate">57.4%</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="metric">
+                    <div class="metric-label">Profit Factor</div>
+                    <div class="metric-value" id="profit-factor">1.23</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: System Status + Current Position + OOS Metrics -->
+        <div class="grid grid-3" style="margin-bottom: 20px;">
+            <!-- System Status -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">System Status</span>
+                    <span class="card-badge live">Live</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Trading</span>
+                    <span style="color: var(--accent-green);">Enabled</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Regime</span>
+                    <span>Normal</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Circuit Breaker</span>
+                    <span style="color: var(--accent-green);">OK</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Model Version</span>
+                    <span>v5.0.0</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Features</span>
+                    <span>12</span>
+                </div>
+            </div>
+
+            <!-- Current Position -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Current Position</span>
+                </div>
+                <div id="position-container">
+                    <div class="position-box">
+                        <div class="position-direction long">LONG</div>
+                        <div class="position-details">
+                            Symbol: SPY<br>
+                            Entry: $567.23<br>
+                            Current: $571.45<br>
+                            P&L: <span style="color: var(--accent-green);">+$422.00 (+0.74%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equity -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Account</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Peak Equity</span>
+                    <span>$10,512.00</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Drawdown</span>
+                    <span style="color: var(--accent-yellow);">-0.81%</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Daily P&L</span>
+                    <span style="color: var(--accent-green);">+$127.50</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-row-label">Total Trades</span>
+                    <span>101</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: OOS Metrics + Exit Breakdown -->
+        <div class="grid grid-2" style="margin-bottom: 20px;">
+            <!-- OOS Metrics -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">OOS Metrics</span>
+                    <span class="card-badge oos">Walk-Forward Only</span>
+                </div>
+                <div class="grid grid-2">
+                    <div class="metric">
+                        <div class="metric-label">Direction Accuracy</div>
+                        <div class="metric-value small">52.3%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Win Rate</div>
+                        <div class="metric-value small">57.4%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Profit Factor</div>
+                        <div class="metric-value small">1.23</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Max Drawdown</div>
+                        <div class="metric-value small">-8.2%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Monthly Return</div>
+                        <div class="metric-value small positive">+1.4%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Sharpe Ratio</div>
+                        <div class="metric-value small">1.65</div>
+                    </div>
+                </div>
+                <div class="realistic-note">
+                    <strong>Realistic Ranges:</strong> Dir. Acc: 51-55% | Win Rate: 45-55% | PF: 1.1-1.3 | Monthly: 0.5-2%
+                </div>
+            </div>
+
+            <!-- Exit Breakdown -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Exit Breakdown</span>
+                    <span class="card-badge">Target: >40% Trailing</span>
+                </div>
+                <div class="exit-bar-container">
+                    <div class="exit-bar-row">
+                        <span class="exit-bar-label">Trailing Stop</span>
+                        <div class="exit-bar-track">
+                            <div class="exit-bar-fill trailing" style="width: 45%"></div>
+                        </div>
+                        <span class="exit-bar-value">45%</span>
+                    </div>
+                    <div class="exit-bar-row">
+                        <span class="exit-bar-label">Stop Loss</span>
+                        <div class="exit-bar-track">
+                            <div class="exit-bar-fill stoploss" style="width: 28%"></div>
+                        </div>
+                        <span class="exit-bar-value">28%</span>
+                    </div>
+                    <div class="exit-bar-row">
+                        <span class="exit-bar-label">Time Stop</span>
+                        <div class="exit-bar-track">
+                            <div class="exit-bar-fill time" style="width: 18%"></div>
+                        </div>
+                        <span class="exit-bar-value">18%</span>
+                    </div>
+                    <div class="exit-bar-row">
+                        <span class="exit-bar-label">Regime Change</span>
+                        <div class="exit-bar-track">
+                            <div class="exit-bar-fill regime" style="width: 9%"></div>
+                        </div>
+                        <span class="exit-bar-value">9%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 4: Recent Trades -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <span class="card-title">Recent Trades</span>
+                <span class="card-badge">Last 30 days</span>
+            </div>
+            <table class="trades-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Symbol</th>
+                        <th>Direction</th>
+                        <th>Entry</th>
+                        <th>Exit</th>
+                        <th>P&L</th>
+                        <th>Exit Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Mar 2, 14:32</td>
+                        <td>SPY</td>
+                        <td><span class="trade-direction long">LONG</span></td>
+                        <td>$565.20</td>
+                        <td>$568.45</td>
+                        <td style="color: var(--accent-green);">+$325.00</td>
+                        <td>Trailing Stop</td>
+                    </tr>
+                    <tr>
+                        <td>Mar 2, 10:15</td>
+                        <td>QQQ</td>
+                        <td><span class="trade-direction short">SHORT</span></td>
+                        <td>$492.80</td>
+                        <td>$494.10</td>
+                        <td style="color: var(--accent-red);">-$130.00</td>
+                        <td>Stop Loss</td>
+                    </tr>
+                    <tr>
+                        <td>Mar 1, 15:45</td>
+                        <td>SPY</td>
+                        <td><span class="trade-direction long">LONG</span></td>
+                        <td>$563.50</td>
+                        <td>$567.20</td>
+                        <td style="color: var(--accent-green);">+$370.00</td>
+                        <td>Trailing Stop</td>
+                    </tr>
+                    <tr>
+                        <td>Mar 1, 11:20</td>
+                        <td>NVDA</td>
+                        <td><span class="trade-direction long">LONG</span></td>
+                        <td>$875.30</td>
+                        <td>$882.15</td>
+                        <td style="color: var(--accent-green);">+$137.00</td>
+                        <td>Trailing Stop</td>
+                    </tr>
+                    <tr>
+                        <td>Feb 29, 14:00</td>
+                        <td>XLF</td>
+                        <td><span class="trade-direction short">SHORT</span></td>
+                        <td>$42.85</td>
+                        <td>$42.30</td>
+                        <td style="color: var(--accent-green);">+$220.00</td>
+                        <td>Time Stop</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Row 5: Configuration + Features -->
+        <div class="grid grid-2" style="margin-bottom: 20px;">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Configuration</span>
+                    <span class="card-badge">V5 Simplified</span>
+                </div>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <div class="config-label">Leverage</div>
+                        <div class="config-value">1.0x (None)</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">Long Threshold</div>
+                        <div class="config-value">z > 1.2</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">Short Threshold</div>
+                        <div class="config-value">z < -1.5</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">Stop Loss</div>
+                        <div class="config-value">3.5x ATR</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">Trailing Activation</div>
+                        <div class="config-value">+1.5%</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">Trailing Distance</div>
+                        <div class="config-value">1.5x ATR</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Selected Features (12)</span>
+                    <span class="card-badge">Proven Edge</span>
+                </div>
+                <div class="feature-list">
+                    <span class="feature-tag">kyle_lambda_12h</span>
+                    <span class="feature-tag">volume_imbalance_6h</span>
+                    <span class="feature-tag">ofi_proxy_6h</span>
+                    <span class="feature-tag">micro_score</span>
+                    <span class="feature-tag">cs_spread_6h</span>
+                    <span class="feature-tag">depth_proxy_6h</span>
+                    <span class="feature-tag">atr_24h</span>
+                    <span class="feature-tag">parkinson_vol_24h</span>
+                    <span class="feature-tag">vol_regime_score</span>
+                    <span class="feature-tag">ret_6h</span>
+                    <span class="feature-tag">ret_24h</span>
+                    <span class="feature-tag">price_vs_vwap</span>
+                </div>
+                <div class="realistic-note" style="margin-top: 16px;">
+                    <strong>Feature Categories:</strong><br>
+                    Microstructure (6) | Volatility/Regime (3) | Momentum (3)
+                </div>
+            </div>
+        </div>
+
+        <div class="last-update">
+            Last updated: <span id="last-update"></span>
+        </div>
+
+        <footer>
+            <p>Shachi V5 Trading System - Simplified, Disciplined, Profitable</p>
+            <p style="margin-top: 8px;">
+                <a href="https://github.com/fjvizcainov/shachi-dashboard">GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Update timestamp
+        document.getElementById('last-update').textContent = new Date().toLocaleString();
+
+        // Simulate live updates (for demo)
+        setInterval(() => {
+            const dot = document.getElementById('status-dot');
+            dot.style.opacity = dot.style.opacity === '0.5' ? '1' : '0.5';
+        }, 1000);
+    </script>
+</body>
+</html>
