@@ -28,7 +28,8 @@ STARTING_EQUITY = 100000  # Initial paper trading balance
 MAX_HISTORY_POINTS = 500  # Keep last 500 data points (~8 hours at 1/min)
 
 # SPY benchmark tracking
-SPY_START_PRICE = None  # Will be set on first run
+# SPY at market open 03-03 9:30 AM when portfolio started
+SPY_START_PRICE = 679.82
 
 
 def get_spy_price():
@@ -83,22 +84,10 @@ def update_history(history, data, spy_price):
     # Calculate PnL percentage from starting equity
     pnl_pct = ((equity - STARTING_EQUITY) / STARTING_EQUITY) * 100
 
-    # Get SPY start price from history (preserve historical baseline)
-    if SPY_START_PRICE is None and history:
-        for h in history:
-            if h.get("spy_start"):
-                SPY_START_PRICE = h["spy_start"]
-                break
-
-    # Get SPY benchmark percentage
+    # Get SPY benchmark percentage (using fixed start price from portfolio start date)
     spy_pct = None
-    if spy_price:
-        # Only set new start price if we don't have one
-        if SPY_START_PRICE is None:
-            SPY_START_PRICE = spy_price
-
-        if SPY_START_PRICE:
-            spy_pct = ((spy_price - SPY_START_PRICE) / SPY_START_PRICE) * 100
+    if spy_price and SPY_START_PRICE:
+        spy_pct = ((spy_price - SPY_START_PRICE) / SPY_START_PRICE) * 100
 
     # Create new data point
     point = {
