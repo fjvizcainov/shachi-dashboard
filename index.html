@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shachi - V5 Trading System Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐋</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-primary: #0d1117;
@@ -227,7 +228,23 @@
             </div>
         </div>
 
-        <!-- Row 2: Positions + Orders -->
+        <!-- Row 2: PnL Chart -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <span class="card-title">Portfolio Performance (PnL %)</span>
+                <span class="card-badge live" id="pnl-badge">--</span>
+            </div>
+            <div style="height: 250px; position: relative;">
+                <canvas id="pnl-chart"></canvas>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
+                <span>Starting: <span id="start-equity">$100,000</span></span>
+                <span>Current: <span id="current-equity">--</span></span>
+                <span>Total PnL: <span id="total-pnl" class="positive">--</span></span>
+            </div>
+        </div>
+
+        <!-- Row 3: Positions + Orders -->
         <div class="grid grid-2" style="margin-bottom: 20px;">
             <!-- Live Positions -->
             <div class="card">
@@ -365,6 +382,108 @@
     <script>
         // Load data from static JSON file (synced from local server)
         const DATA_URL = 'data.json';
+        const HISTORY_URL = 'pnl_history.json';
+        const STARTING_EQUITY = 100000;
+
+        // Chart instance
+        let pnlChart = null;
+
+        function initChart() {
+            const ctx = document.getElementById('pnl-chart').getContext('2d');
+            pnlChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'PnL %',
+                        data: [],
+                        borderColor: '#3fb950',
+                        backgroundColor: 'rgba(63, 185, 80, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `PnL: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(48, 54, 61, 0.5)' },
+                            ticks: { color: '#8b949e', maxTicksLimit: 8 }
+                        },
+                        y: {
+                            grid: { color: 'rgba(48, 54, 61, 0.5)' },
+                            ticks: {
+                                color: '#8b949e',
+                                callback: (v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`
+                            }
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+        }
+
+        function updateChart(history) {
+            if (!pnlChart || !history || history.length === 0) return;
+
+            const labels = history.map(h => {
+                const d = new Date(h.timestamp);
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            });
+            const data = history.map(h => h.pnl_pct);
+
+            // Update chart color based on final PnL
+            const finalPnl = data[data.length - 1] || 0;
+            const color = finalPnl >= 0 ? '#3fb950' : '#f85149';
+            pnlChart.data.datasets[0].borderColor = color;
+            pnlChart.data.datasets[0].backgroundColor = finalPnl >= 0
+                ? 'rgba(63, 185, 80, 0.1)'
+                : 'rgba(248, 81, 73, 0.1)';
+
+            pnlChart.data.labels = labels;
+            pnlChart.data.datasets[0].data = data;
+            pnlChart.update('none');
+
+            // Update badge
+            const badge = document.getElementById('pnl-badge');
+            badge.textContent = `${finalPnl >= 0 ? '+' : ''}${finalPnl.toFixed(2)}%`;
+            badge.className = finalPnl >= 0 ? 'card-badge live' : 'card-badge';
+            badge.style.background = finalPnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+
+            // Update summary
+            const startEquity = history[0]?.equity || STARTING_EQUITY;
+            const currentEquity = history[history.length - 1]?.equity || startEquity;
+            const totalPnl = ((currentEquity - STARTING_EQUITY) / STARTING_EQUITY) * 100;
+
+            document.getElementById('start-equity').textContent = formatCurrency(STARTING_EQUITY);
+            document.getElementById('current-equity').textContent = formatCurrency(currentEquity);
+
+            const totalPnlEl = document.getElementById('total-pnl');
+            totalPnlEl.textContent = `${totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}%`;
+            totalPnlEl.className = totalPnl >= 0 ? 'positive' : 'negative';
+        }
+
+        async function loadPnlHistory() {
+            try {
+                const res = await fetch(HISTORY_URL + '?t=' + Date.now());
+                const history = await res.json();
+                updateChart(history);
+            } catch (e) {
+                console.log('PnL history not available yet');
+            }
+        }
 
         function formatCurrency(value) {
             if (value === null || value === undefined || isNaN(value)) return '--';
@@ -490,9 +609,14 @@
             }
         }
 
-        // Load initially and refresh every 30 seconds
+        // Initialize chart and load data
+        initChart();
         loadData();
+        loadPnlHistory();
+
+        // Refresh every 30 seconds
         setInterval(loadData, 30000);
+        setInterval(loadPnlHistory, 30000);
     </script>
 </body>
 </html>
