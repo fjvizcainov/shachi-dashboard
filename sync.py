@@ -83,13 +83,18 @@ def update_history(history, data, spy_price):
     # Calculate PnL percentage from starting equity
     pnl_pct = ((equity - STARTING_EQUITY) / STARTING_EQUITY) * 100
 
+    # Get SPY start price from history (preserve historical baseline)
+    if SPY_START_PRICE is None and history:
+        for h in history:
+            if h.get("spy_start"):
+                SPY_START_PRICE = h["spy_start"]
+                break
+
     # Get SPY benchmark percentage
     spy_pct = None
     if spy_price:
-        # Set starting SPY price from first history point or current
-        if history and "spy_start" in history[0]:
-            SPY_START_PRICE = history[0]["spy_start"]
-        elif SPY_START_PRICE is None:
+        # Only set new start price if we don't have one
+        if SPY_START_PRICE is None:
             SPY_START_PRICE = spy_price
 
         if SPY_START_PRICE:
