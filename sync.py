@@ -27,6 +27,34 @@ SYNC_INTERVAL = 60  # seconds
 STARTING_EQUITY = 100000  # Initial paper trading balance
 MAX_HISTORY_POINTS = 500  # Keep last 500 data points (~8 hours at 1/min)
 
+# SPY benchmark tracking
+SPY_START_PRICE = None  # Will be set on first run
+
+
+def get_spy_price():
+    """Fetch current SPY price from Yahoo Finance."""
+    try:
+        # Use Yahoo Finance API
+        url = "https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1m&range=1d"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        r = requests.get(url, headers=headers, timeout=5)
+        if r.ok:
+            data = r.json()
+            price = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+            return float(price)
+    except Exception as e:
+        pass
+
+    # Fallback: try Alpaca data endpoint
+    try:
+        r = requests.get(f"{LOCAL_API}/api/quote/SPY", timeout=5)
+        if r.ok:
+            return float(r.json().get("price", 0))
+    except:
+        pass
+
+    return None
+
 
 def load_history():
     """Load existing PnL history."""
@@ -39,8 +67,10 @@ def load_history():
     return []
 
 
-def update_history(history, data):
+def update_history(history, data, spy_price):
     """Update PnL history with current data point."""
+    global SPY_START_PRICE
+
     if data.get("status") != "connected":
         return history
 
@@ -53,12 +83,27 @@ def update_history(history, data):
     # Calculate PnL percentage from starting equity
     pnl_pct = ((equity - STARTING_EQUITY) / STARTING_EQUITY) * 100
 
+    # Get SPY benchmark percentage
+    spy_pct = None
+    if spy_price:
+        # Set starting SPY price from first history point or current
+        if history and "spy_start" in history[0]:
+            SPY_START_PRICE = history[0]["spy_start"]
+        elif SPY_START_PRICE is None:
+            SPY_START_PRICE = spy_price
+
+        if SPY_START_PRICE:
+            spy_pct = ((spy_price - SPY_START_PRICE) / SPY_START_PRICE) * 100
+
     # Create new data point
     point = {
         "timestamp": data["timestamp"],
         "equity": equity,
         "pnl_pct": round(pnl_pct, 4),
         "positions": len(data.get("positions", [])),
+        "spy_price": spy_price,
+        "spy_pct": round(spy_pct, 4) if spy_pct is not None else None,
+        "spy_start": SPY_START_PRICE,
     }
 
     # Avoid duplicate timestamps (within same minute)
@@ -154,15 +199,20 @@ def save_and_push(data, history):
 
         equity = data.get('account', {}).get('equity', 0)
         pnl = ((float(equity) - STARTING_EQUITY) / STARTING_EQUITY) * 100 if equity else 0
-        print(f"[{data['timestamp'][:19]}] Synced | Equity: ${float(equity):,.2f} | PnL: {pnl:+.2f}%")
+        spy_pct = history[-1].get("spy_pct") if history else None
+        spy_str = f" | SPY: {spy_pct:+.2f}%" if spy_pct is not None else ""
+        print(f"[{data['timestamp'][:19]}] Synced | PnL: {pnl:+.2f}%{spy_str}")
+        sys.stdout.flush()
         return True
 
     except subprocess.CalledProcessError as e:
         # No changes to commit is OK
         if b"nothing to commit" in (e.stdout or b"") + (e.stderr or b""):
             print(f"[{data['timestamp'][:19]}] No changes")
+            sys.stdout.flush()
             return True
         print(f"[{data['timestamp'][:19]}] Git error: {(e.stderr or b'').decode()}")
+        sys.stdout.flush()
         return False
 
 
@@ -171,16 +221,17 @@ def run_once():
     print("Fetching data from local server...")
     data = fetch_data()
     history = load_history()
+    spy_price = get_spy_price()
 
     if data["status"] == "connected":
         equity = data.get('account', {}).get('equity', 0)
         pnl = ((float(equity) - STARTING_EQUITY) / STARTING_EQUITY) * 100 if equity else 0
         print(f"Account: ${float(equity):,.2f} (PnL: {pnl:+.2f}%)")
         print(f"Positions: {len(data.get('positions', []))}")
-        print(f"Orders: {len(data.get('orders', []))}")
+        print(f"SPY Price: ${spy_price:.2f}" if spy_price else "SPY: unavailable")
         print(f"History points: {len(history)}")
 
-        history = update_history(history, data)
+        history = update_history(history, data, spy_price)
     else:
         print(f"Error: {data.get('error', 'Unknown')}")
 
@@ -191,15 +242,19 @@ def run_daemon():
     """Run sync continuously."""
     print(f"Starting sync daemon (interval: {SYNC_INTERVAL}s)")
     print(f"Tracking PnL from starting equity: ${STARTING_EQUITY:,}")
+    print("Tracking SPY benchmark")
     print("Press Ctrl+C to stop\n")
+    sys.stdout.flush()
 
     history = load_history()
     print(f"Loaded {len(history)} history points")
+    sys.stdout.flush()
 
     while True:
         try:
             data = fetch_data()
-            history = update_history(history, data)
+            spy_price = get_spy_price()
+            history = update_history(history, data, spy_price)
             save_and_push(data, history)
             time.sleep(SYNC_INTERVAL)
         except KeyboardInterrupt:

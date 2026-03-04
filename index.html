@@ -240,7 +240,8 @@
             <div style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
                 <span>Starting: <span id="start-equity">$100,000</span></span>
                 <span>Current: <span id="current-equity">--</span></span>
-                <span>Total PnL: <span id="total-pnl" class="positive">--</span></span>
+                <span>Portfolio: <span id="total-pnl" class="positive">--</span></span>
+                <span>SPY: <span id="spy-compare" class="positive">--</span></span>
             </div>
         </div>
 
@@ -394,26 +395,50 @@
                 type: 'line',
                 data: {
                     labels: [],
-                    datasets: [{
-                        label: 'PnL %',
-                        data: [],
-                        borderColor: '#3fb950',
-                        backgroundColor: 'rgba(63, 185, 80, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2,
-                        pointHoverRadius: 5,
-                        borderWidth: 2
-                    }]
+                    datasets: [
+                        {
+                            label: 'Portfolio',
+                            data: [],
+                            borderColor: '#3fb950',
+                            backgroundColor: 'rgba(63, 185, 80, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 5,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'SPY',
+                            data: [],
+                            borderColor: '#58a6ff',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            borderWidth: 2,
+                            borderDash: [5, 5]
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                color: '#8b949e',
+                                boxWidth: 12,
+                                padding: 8,
+                                font: { size: 11 }
+                            }
+                        },
                         tooltip: {
                             callbacks: {
-                                label: (ctx) => `PnL: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}%`
+                                label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}%`
                             }
                         }
                     },
@@ -442,10 +467,11 @@
                 const d = new Date(h.timestamp);
                 return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             });
-            const data = history.map(h => h.pnl_pct);
+            const portfolioData = history.map(h => h.pnl_pct);
+            const spyData = history.map(h => h.spy_pct);
 
-            // Update chart color based on final PnL
-            const finalPnl = data[data.length - 1] || 0;
+            // Update portfolio chart color based on final PnL
+            const finalPnl = portfolioData[portfolioData.length - 1] || 0;
             const color = finalPnl >= 0 ? '#3fb950' : '#f85149';
             pnlChart.data.datasets[0].borderColor = color;
             pnlChart.data.datasets[0].backgroundColor = finalPnl >= 0
@@ -453,14 +479,17 @@
                 : 'rgba(248, 81, 73, 0.1)';
 
             pnlChart.data.labels = labels;
-            pnlChart.data.datasets[0].data = data;
+            pnlChart.data.datasets[0].data = portfolioData;
+            pnlChart.data.datasets[1].data = spyData;
             pnlChart.update('none');
 
-            // Update badge
+            // Update badge with alpha (portfolio - SPY)
+            const finalSpy = spyData[spyData.length - 1] || 0;
+            const alpha = finalPnl - finalSpy;
             const badge = document.getElementById('pnl-badge');
-            badge.textContent = `${finalPnl >= 0 ? '+' : ''}${finalPnl.toFixed(2)}%`;
-            badge.className = finalPnl >= 0 ? 'card-badge live' : 'card-badge';
-            badge.style.background = finalPnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+            badge.textContent = `Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%`;
+            badge.className = alpha >= 0 ? 'card-badge live' : 'card-badge';
+            badge.style.background = alpha >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
 
             // Update summary
             const startEquity = history[0]?.equity || STARTING_EQUITY;
@@ -473,6 +502,13 @@
             const totalPnlEl = document.getElementById('total-pnl');
             totalPnlEl.textContent = `${totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}%`;
             totalPnlEl.className = totalPnl >= 0 ? 'positive' : 'negative';
+
+            // Update SPY comparison
+            const spyCompareEl = document.getElementById('spy-compare');
+            if (spyCompareEl) {
+                spyCompareEl.textContent = `${finalSpy >= 0 ? '+' : ''}${finalSpy.toFixed(2)}%`;
+                spyCompareEl.className = finalSpy >= 0 ? 'positive' : 'negative';
+            }
         }
 
         async function loadPnlHistory() {
