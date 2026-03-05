@@ -1,72 +1,130 @@
 {
-  "timestamp": "2026-03-05T08:55:45.334171",
-  "status": "error",
+  "timestamp": "2026-03-05T08:57:12.737312",
+  "status": "connected",
   "account": {
-    "buying_power": 97725.74,
+    "buying_power": 97782.76,
     "cash": -3904.79,
     "day_trade_count": 3,
-    "equity": 101630.53,
+    "equity": 101687.55,
     "pattern_day_trader": false,
-    "portfolio_value": 101630.53,
-    "timestamp": "2026-03-05T08:55:45.775691",
+    "portfolio_value": 101687.55,
+    "timestamp": "2026-03-05T08:57:14.325648",
     "trading_blocked": false
   },
   "positions": [
     {
-      "current_price": 217.94,
+      "current_price": 218.11,
       "entry_price": 208.04,
-      "market_value": 39446.24,
+      "market_value": 39477.91,
       "qty": 181,
       "side": "LONG",
       "symbol": "AMZN",
-      "timestamp": "2026-03-05T08:55:47.695346",
-      "unrealized_pnl": 1791.26,
-      "unrealized_pnl_pct": 4.76
+      "timestamp": "2026-03-05T08:57:14.653039",
+      "unrealized_pnl": 1822.93,
+      "unrealized_pnl_pct": 4.84
     },
     {
-      "current_price": 608.54,
+      "current_price": 608.69,
       "entry_price": 602.96,
-      "market_value": 17039.08,
+      "market_value": 17043.32,
       "qty": 28,
       "side": "LONG",
       "symbol": "QQQ",
-      "timestamp": "2026-03-05T08:55:47.695354",
-      "unrealized_pnl": 156.12,
-      "unrealized_pnl_pct": 0.92
+      "timestamp": "2026-03-05T08:57:14.653047",
+      "unrealized_pnl": 160.36,
+      "unrealized_pnl_pct": 0.95
     },
     {
-      "current_price": 681.08,
+      "current_price": 681.21,
       "entry_price": 680.14,
-      "market_value": 19751.32,
+      "market_value": 19755.09,
       "qty": 29,
       "side": "LONG",
       "symbol": "SPY",
-      "timestamp": "2026-03-05T08:55:47.695357",
-      "unrealized_pnl": 27.14,
-      "unrealized_pnl_pct": 0.14
+      "timestamp": "2026-03-05T08:57:14.653050",
+      "unrealized_pnl": 30.91,
+      "unrealized_pnl_pct": 0.16
     },
     {
-      "current_price": 56.65,
+      "current_price": 56.64,
       "entry_price": 56.76,
-      "market_value": 12179.75,
+      "market_value": 12177.6,
       "qty": 215,
       "side": "LONG",
       "symbol": "XLE",
-      "timestamp": "2026-03-05T08:55:47.695360",
-      "unrealized_pnl": -23.65,
-      "unrealized_pnl_pct": -0.19
+      "timestamp": "2026-03-05T08:57:14.653052",
+      "unrealized_pnl": -25.8,
+      "unrealized_pnl_pct": -0.21
     },
     {
-      "current_price": 140.33,
+      "current_price": 140.37,
       "entry_price": 138.06,
-      "market_value": 17120.26,
+      "market_value": 17125.14,
       "qty": 122,
       "side": "LONG",
       "symbol": "XLK",
-      "timestamp": "2026-03-05T08:55:47.695362",
-      "unrealized_pnl": 276.94,
-      "unrealized_pnl_pct": 1.64
+      "timestamp": "2026-03-05T08:57:14.653054",
+      "unrealized_pnl": 281.82,
+      "unrealized_pnl_pct": 1.67
     }
   ],
-  "error": "HTTPConnectionPool(host='localhost', port=5002): Read timed out. (read timeout=5)"
+  "orders": [
+    {
+      "created_at": "2026-03-05T15:29:17.60098Z",
+      "id": "68c3138a-48d8-4354-9c27-41931bd3680b",
+      "limit_price": "60.31",
+      "qty": "215",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "XLE",
+      "type": "limit"
+    },
+    {
+      "created_at": "2026-03-04T14:44:06.188702Z",
+      "id": "bafe7da8-6199-4d0d-b949-5ca7d86b6b2a",
+      "limit_price": "751.26",
+      "qty": "29",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "SPY",
+      "type": "limit"
+    },
+    {
+      "created_at": "2026-03-03T18:57:34.223376Z",
+      "id": "30f99148-bddf-4ce3-93f5-b8f81c4c8267",
+      "limit_price": "650.54",
+      "qty": "28",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "QQQ",
+      "type": "limit"
+    },
+    {
+      "created_at": "2026-03-03T18:57:33.59407Z",
+      "id": "e79abdef-268e-4265-8395-32738173ae75",
+      "limit_price": "228.88",
+      "qty": "95",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "AMZN",
+      "type": "limit"
+    }
+  ],
+  "signals": {
+    "confidence": 50,
+    "price": 686.93,
+    "reasons": [
+      "MACD bullish",
+      "Price > SMA20"
+    ],
+    "score": 1,
+    "signal": "NEUTRAL",
+    "timestamp": "2026-03-05T08:57:15.011967"
+  },
+  "system_status": {
+    "last_update": "2026-03-02T19:03:34.114677",
+    "mode": "paper",
+    "status": "running",
+    "uptime_hours": 24
+  }
 }
