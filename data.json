@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-03-06T19:38:19.034172",
-  "status": "error",
+  "timestamp": "2026-03-06T19:39:29.980933",
+  "status": "connected",
   "account": {
     "buying_power": 62942.08,
     "cash": -37232.03,
@@ -8,7 +8,7 @@
     "equity": 100174.11,
     "pattern_day_trader": false,
     "portfolio_value": 100174.11,
-    "timestamp": "2026-03-06T19:38:19.349803",
+    "timestamp": "2026-03-06T19:39:30.295304",
     "trading_blocked": false
   },
   "positions": [
@@ -19,7 +19,7 @@
       "qty": 181,
       "side": "LONG",
       "symbol": "AMZN",
-      "timestamp": "2026-03-06T19:38:19.758177",
+      "timestamp": "2026-03-06T19:39:30.706989",
       "unrealized_pnl": 936.03,
       "unrealized_pnl_pct": 2.49
     },
@@ -30,7 +30,7 @@
       "qty": 49,
       "side": "LONG",
       "symbol": "MSFT",
-      "timestamp": "2026-03-06T19:38:19.758185",
+      "timestamp": "2026-03-06T19:39:30.706997",
       "unrealized_pnl": 13.91,
       "unrealized_pnl_pct": 0.07
     },
@@ -41,7 +41,7 @@
       "qty": 28,
       "side": "LONG",
       "symbol": "QQQ",
-      "timestamp": "2026-03-06T19:38:19.758188",
+      "timestamp": "2026-03-06T19:39:30.707000",
       "unrealized_pnl": -89.96,
       "unrealized_pnl_pct": -0.53
     },
@@ -52,7 +52,7 @@
       "qty": 29,
       "side": "LONG",
       "symbol": "SPY",
-      "timestamp": "2026-03-06T19:38:19.758191",
+      "timestamp": "2026-03-06T19:39:30.707002",
       "unrealized_pnl": -225.16,
       "unrealized_pnl_pct": -1.14
     },
@@ -63,10 +63,78 @@
       "qty": 751,
       "side": "LONG",
       "symbol": "XLE",
-      "timestamp": "2026-03-06T19:38:19.758193",
+      "timestamp": "2026-03-06T19:39:30.707005",
       "unrealized_pnl": 82.43,
       "unrealized_pnl_pct": 0.19
     }
   ],
-  "error": "HTTPConnectionPool(host='localhost', port=5002): Read timed out. (read timeout=5)"
+  "orders": [
+    {
+      "created_at": "2026-03-05T19:08:19.004896Z",
+      "id": "1819dca7-9b57-41ea-887d-029fff140bf7",
+      "limit_price": "439.95",
+      "qty": "49",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "MSFT",
+      "type": "limit"
+    },
+    {
+      "created_at": "2026-03-05T15:29:17.60098Z",
+      "id": "68c3138a-48d8-4354-9c27-41931bd3680b",
+      "limit_price": "60.31",
+      "qty": "215",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "XLE",
+      "type": "limit"
+    },
+    {
+      "created_at": "2026-03-04T14:44:06.188702Z",
+      "id": "bafe7da8-6199-4d0d-b949-5ca7d86b6b2a",
+      "limit_price": "751.26",
+      "qty": "29",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "SPY",
+      "type": "limit"
+    },
+    {
+      "created_at": "2026-03-03T18:57:34.223376Z",
+      "id": "30f99148-bddf-4ce3-93f5-b8f81c4c8267",
+      "limit_price": "650.54",
+      "qty": "28",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "QQQ",
+      "type": "limit"
+    },
+    {
+      "created_at": "2026-03-03T18:57:33.59407Z",
+      "id": "e79abdef-268e-4265-8395-32738173ae75",
+      "limit_price": "228.88",
+      "qty": "95",
+      "side": "SELL",
+      "status": "new",
+      "symbol": "AMZN",
+      "type": "limit"
+    }
+  ],
+  "signals": {
+    "confidence": 50,
+    "price": 682.12,
+    "reasons": [
+      "MACD bearish",
+      "Price < SMA20"
+    ],
+    "score": -1,
+    "signal": "NEUTRAL",
+    "timestamp": "2026-03-06T19:39:31.149676"
+  },
+  "system_status": {
+    "last_update": "2026-03-02T19:03:34.114677",
+    "mode": "paper",
+    "status": "running",
+    "uptime_hours": 24
+  }
 }
