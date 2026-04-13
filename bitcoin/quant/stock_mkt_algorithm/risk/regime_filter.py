@@ -235,7 +235,7 @@ class RegimeFilter:
             logger.warning("Regime filter: SPY data unavailable, defaulting to NEUTRAL")
             regime_name = "NEUTRAL"
         else:
-            regime_name = self._classify(spy, vix or 20.0)
+            regime_name = self._classify(spy, vix)  # _get_vix() guaranteed non-None (falls back to _last_vix or 25.0)
 
         self._cache_regime = regime_name
         self._cache_ts     = now

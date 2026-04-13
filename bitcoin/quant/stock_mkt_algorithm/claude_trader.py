@@ -254,10 +254,12 @@ class ClaudeTrader:
                     f"{self._count_individual_longs()} individual longs are open"
                 )
 
-        # Law 1: max 6 positions
+        # Law 1: max positions (hard cap AND regime-based cap)
         if action == "BUY" and ticker not in positions:
-            if len(positions) >= MAX_POSITIONS:
-                return f"BLOCKED: max {MAX_POSITIONS} positions reached"
+            regime = self.regime_filter.get_regime()
+            effective_max = min(MAX_POSITIONS, regime.max_positions)
+            if len(positions) >= effective_max:
+                return f"BLOCKED: max {effective_max} positions reached (regime={regime.name})"
 
         # Law 2: max 22% per position
         if action == "BUY":
