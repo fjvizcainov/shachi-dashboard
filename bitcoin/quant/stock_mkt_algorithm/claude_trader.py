@@ -818,6 +818,17 @@ class ClaudeTrader:
             for future in as_completed(futures):
                 ticker, decision, signal = future.result()
                 if decision:
+                    # FIX: re-sync before each execution — parallel evals all saw
+                    # the same position count; without re-sync we can exceed MAX_POSITIONS
+                    self._sync_positions()
+                    regime = self.regime_filter.get_regime()
+                    effective_max = min(MAX_POSITIONS, regime.max_positions)
+                    if len(self._open_positions) >= effective_max:
+                        logger.warning(
+                            f"Skipping {ticker}: {len(self._open_positions)}/{effective_max} "
+                            f"positions already open (regime={regime.name})"
+                        )
+                        continue
                     self._execute_decision(decision, signal_data=signal)
 
     # ─── Scheduled Events ─────────────────────────────────────────────────────

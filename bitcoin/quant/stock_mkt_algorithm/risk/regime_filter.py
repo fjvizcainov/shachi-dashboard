@@ -106,6 +106,9 @@ class RegimeFilter:
         self._alpaca_secret = config.alpaca.secret_key
         self._polygon_key   = config.polygon.api_key
 
+        # FIX: persist last known VIX so data gaps don't silently default to 20
+        self._last_vix: Optional[float] = None
+
     # ─── Data helpers ─────────────────────────────────────────────────────────
 
     def _get_spy_data(self) -> Optional[Dict]:
@@ -161,7 +164,9 @@ class RegimeFilter:
             if resp.status_code == 200:
                 results = resp.json().get("results", [])
                 if results:
-                    return float(results[0]["c"])
+                    vix = float(results[0]["c"])
+                    self._last_vix = vix
+                    return vix
         except Exception:
             pass
 
@@ -180,12 +185,21 @@ class RegimeFilter:
             if resp.status_code == 200:
                 bars = resp.json().get("bars", [])
                 if bars:
-                    return float(bars[0]["c"]) * 1.4  # rough VIX proxy from VIXY
+                    vix = float(bars[0]["c"]) * 1.4  # rough VIX proxy from VIXY
+                    self._last_vix = vix
+                    return vix
         except Exception:
             pass
 
-        logger.warning("Could not fetch VIX — defaulting to 20")
-        return 20.0
+        # FIX: use last known VIX instead of blindly defaulting to 20 (too optimistic)
+        if self._last_vix is not None:
+            logger.warning(
+                f"Could not fetch VIX — using last known value {self._last_vix:.1f}"
+            )
+            return self._last_vix
+
+        logger.warning("Could not fetch VIX — no prior value, defaulting to 25 (conservative)")
+        return 25.0
 
     # ─── Regime detection ─────────────────────────────────────────────────────
 

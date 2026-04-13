@@ -594,7 +594,7 @@ class ClaudeAnalyst:
             logger.error(f"Tool error {tool_name}: {e}")
             return {"error": str(e)}
 
-    def _run_with_tools(self, messages: List[Dict], max_iterations: int = 8) -> str:
+    def _run_with_tools(self, messages: List[Dict], max_iterations: int = 15) -> str:
         """
         Run Claude with tool use loop until it produces a final text response.
         Extended thinking enabled for deeper reasoning.

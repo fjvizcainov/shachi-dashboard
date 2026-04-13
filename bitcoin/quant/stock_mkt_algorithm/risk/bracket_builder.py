@@ -34,6 +34,7 @@ ATR_TP_MULT_CRYPTO   = 5.0
 # Hard-floor stop as % of price (safety net for illiquid hours)
 MIN_STOP_PCT = 0.008   # 0.8% minimum distance
 MAX_STOP_PCT = 0.08    # 8% maximum stop distance (never wider)
+MAX_TP_PCT   = 0.12    # 12% maximum TP distance — keeps target reachable intraday
 
 
 @dataclass
@@ -94,7 +95,7 @@ class BracketBuilder:
 
         atr       = entry * atr_pct
         stop_dist = entry * max(MIN_STOP_PCT, min(MAX_STOP_PCT, atr_pct * stop_mult))
-        tp_dist   = entry * atr_pct * tp_mult
+        tp_dist   = entry * min(MAX_TP_PCT, atr_pct * tp_mult)
 
         # Ensure minimum TP > stop (R:R > 1)
         tp_dist = max(tp_dist, stop_dist * 1.5)
@@ -119,11 +120,14 @@ class BracketBuilder:
             side=side.lower(),
         )
 
+        # Log actual capped distances (not raw atr * mult)
+        stop_pct = stop_dist / entry * 100
+        tp_pct   = tp_dist   / entry * 100
         logger.info(
             f"Bracket {ticker} {side.upper()}: "
             f"entry=${entry:.2f} "
-            f"SL=${stop_loss:.2f} ({atr_pct*stop_mult*100:.1f}% away) "
-            f"TP=${take_profit:.2f} ({atr_pct*tp_mult*100:.1f}% away) "
+            f"SL=${stop_loss:.2f} ({stop_pct:.1f}% away) "
+            f"TP=${take_profit:.2f} ({tp_pct:.1f}% away) "
             f"R:R={rr:.2f}"
         )
 
