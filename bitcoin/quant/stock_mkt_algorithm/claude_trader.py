@@ -815,23 +815,31 @@ class ClaudeTrader:
                 self._touch_cooldown(ticker)
                 return ticker, None, signal
 
+        ANALYST_TIMEOUT_SEC = 90  # max per-signal eval (15 iters × ~6s avg); screener cycle is 120s
         with ThreadPoolExecutor(max_workers=len(candidates)) as executor:
             futures = {executor.submit(_eval, s): s for s in candidates}
-            for future in as_completed(futures):
-                ticker, decision, signal = future.result()
-                if decision:
-                    # FIX: re-sync before each execution — parallel evals all saw
-                    # the same position count; without re-sync we can exceed MAX_POSITIONS
-                    self._sync_positions()
-                    regime = self.regime_filter.get_regime()
-                    effective_max = min(MAX_POSITIONS, regime.max_positions)
-                    if len(self._open_positions) >= effective_max:
-                        logger.warning(
-                            f"Skipping {ticker}: {len(self._open_positions)}/{effective_max} "
-                            f"positions already open (regime={regime.name})"
-                        )
+            try:
+                for future in as_completed(futures, timeout=ANALYST_TIMEOUT_SEC):
+                    try:
+                        ticker, decision, signal = future.result(timeout=ANALYST_TIMEOUT_SEC)
+                    except TimeoutError:
+                        logger.warning(f"Analyst eval timed out after {ANALYST_TIMEOUT_SEC}s — skipping")
                         continue
-                    self._execute_decision(decision, signal_data=signal)
+                    if decision:
+                        # FIX: re-sync before each execution — parallel evals all saw
+                        # the same position count; without re-sync we can exceed MAX_POSITIONS
+                        self._sync_positions()
+                        regime = self.regime_filter.get_regime()
+                        effective_max = min(MAX_POSITIONS, regime.max_positions)
+                        if len(self._open_positions) >= effective_max:
+                            logger.warning(
+                                f"Skipping {ticker}: {len(self._open_positions)}/{effective_max} "
+                                f"positions already open (regime={regime.name})"
+                            )
+                            continue
+                        self._execute_decision(decision, signal_data=signal)
+            except TimeoutError:
+                logger.warning(f"Parallel eval batch timed out after {ANALYST_TIMEOUT_SEC}s — proceeding to next cycle")
 
     # ─── Scheduled Events ─────────────────────────────────────────────────────
 
