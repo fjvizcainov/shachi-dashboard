@@ -2,12 +2,16 @@
 """
 Shachi Dashboard Sync Script
 
-Fetches data from local trading server and pushes to GitHub.
-Run this locally to keep the public dashboard updated.
+Fetches all dashboard data from the local trading server (localhost:5002)
+and pushes individual JSON snapshots to GitHub so GitHub Pages always shows
+the same data as the live localhost dashboard.
+
+Each endpoint is saved as a separate file under data/ so the static HTML
+can load them independently (same structure as the live Flask API).
 
 Usage:
-    python3 sync.py           # Run once
-    python3 sync.py --daemon  # Run every 60 seconds
+    python3 sync.py           # Export once and push
+    python3 sync.py --daemon  # Export every 60 s (run after market open)
 """
 
 import json
@@ -15,245 +19,160 @@ import subprocess
 import requests
 import time
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
-# Configuration
-LOCAL_API = "http://localhost:5002"
-REPO_PATH = Path(__file__).parent
-DATA_FILE = REPO_PATH / "data.json"
-HISTORY_FILE = REPO_PATH / "pnl_history.json"
-SYNC_INTERVAL = 60  # seconds
-STARTING_EQUITY = 100000  # Initial paper trading balance
-MAX_HISTORY_POINTS = 500  # Keep last 500 data points (~8 hours at 1/min)
+# ── Config ────────────────────────────────────────────────────────────────────
+LOCAL_API      = "http://localhost:5002"
+REPO_PATH      = Path(__file__).parent
+DATA_DIR       = REPO_PATH / "data"
+SYNC_INTERVAL  = 60   # seconds between syncs in daemon mode
+MAX_RETRIES    = 3    # retries per endpoint on failure
 
-# SPY benchmark tracking
-# SPY at market open 03-03 9:30 AM when portfolio started
-SPY_START_PRICE = 679.82
+DATA_DIR.mkdir(exist_ok=True)
+
+# Endpoint → filename mapping (must match paths used in index.html)
+ENDPOINTS = [
+    ("/api/status",              "status.json"),
+    ("/api/account",             "account.json"),
+    ("/api/portfolio",           "portfolio.json"),
+    ("/api/positions",           "positions.json"),
+    ("/api/orders",              "orders.json"),
+    ("/api/trade_history",       "trade_history.json"),
+    ("/api/equity",              "equity.json"),
+    ("/api/signals",             "signals.json"),
+    ("/api/metrics",             "metrics.json"),
+    ("/api/live",                "live.json"),
+    # legacy / supplemental
+    ("/api/daily_metrics",       "daily_metrics.json"),
+    ("/api/market/SPY",          "market.json"),
+    ("/api/chart/SPY",           "chart.json"),
+    ("/api/daily_pnl_reconcile", "reconcile.json"),
+]
 
 
-def get_spy_price():
-    """Fetch current SPY price from Yahoo Finance."""
-    try:
-        # Use Yahoo Finance API
-        url = "https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1m&range=1d"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        r = requests.get(url, headers=headers, timeout=5)
-        if r.ok:
-            data = r.json()
-            price = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
-            return float(price)
-    except Exception as e:
-        pass
+# ── Data fetching ─────────────────────────────────────────────────────────────
 
-    # Fallback: try Alpaca data endpoint
-    try:
-        r = requests.get(f"{LOCAL_API}/api/quote/SPY", timeout=5)
-        if r.ok:
-            return float(r.json().get("price", 0))
-    except:
-        pass
-
+def fetch_endpoint(path, retries=MAX_RETRIES):
+    """Fetch one API endpoint with retries. Returns parsed JSON or None."""
+    for attempt in range(retries):
+        try:
+            r = requests.get(LOCAL_API + path, timeout=30)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            if attempt == retries - 1:
+                print(f"  WARN  {path}: {e}")
+            else:
+                time.sleep(1)
     return None
 
 
-def load_history():
-    """Load existing PnL history."""
-    if HISTORY_FILE.exists():
+def export_all():
+    """
+    Fetch all endpoints and write to data/*.json.
+    Returns (ok_count, error_count, equity).
+    """
+    ok, errors = 0, 0
+    equity = None
+
+    for path, filename in ENDPOINTS:
+        data = fetch_endpoint(path)
+        if data is None:
+            errors += 1
+            continue
         try:
-            with open(HISTORY_FILE, "r") as f:
-                return json.load(f)
-        except json.JSONDecodeError:
-            return []
-    return []
+            with open(DATA_DIR / filename, "w") as f:
+                json.dump(data, f, separators=(",", ":"), default=str)
+            ok += 1
+            if filename == "account.json":
+                equity = float(data.get("equity") or data.get("portfolio_value") or 0)
+        except Exception as e:
+            print(f"  ERR  write {filename}: {e}")
+            errors += 1
 
-
-def update_history(history, data, spy_price):
-    """Update PnL history with current data point."""
-    global SPY_START_PRICE
-
-    if data.get("status") != "connected":
-        return history
-
-    account = data.get("account", {})
-    equity = float(account.get("equity", 0) or account.get("portfolio_value", 0))
-
-    if equity <= 0:
-        return history
-
-    # Calculate PnL percentage from starting equity
-    pnl_pct = ((equity - STARTING_EQUITY) / STARTING_EQUITY) * 100
-
-    # Get SPY benchmark percentage (using fixed start price from portfolio start date)
-    spy_pct = None
-    if spy_price and SPY_START_PRICE:
-        spy_pct = ((spy_price - SPY_START_PRICE) / SPY_START_PRICE) * 100
-
-    # Create new data point
-    point = {
-        "timestamp": data["timestamp"],
-        "equity": equity,
-        "pnl_pct": round(pnl_pct, 4),
-        "positions": len(data.get("positions", [])),
-        "spy_price": spy_price,
-        "spy_pct": round(spy_pct, 4) if spy_pct is not None else None,
-        "spy_start": SPY_START_PRICE,
+    # Write metadata (last_updated for the snapshot banner in index.html)
+    meta = {
+        "last_updated": datetime.now().isoformat(),
+        "date":         datetime.now().strftime("%Y-%m-%d"),
+        "ok":           ok,
+        "errors":       errors,
     }
+    with open(DATA_DIR / "meta.json", "w") as f:
+        json.dump(meta, f, separators=(",", ":"))
 
-    # Avoid duplicate timestamps (within same minute)
-    if history:
-        last_time = history[-1].get("timestamp", "")[:16]
-        new_time = point["timestamp"][:16]
-        if last_time == new_time:
-            # Update existing point
-            history[-1] = point
-            return history
-
-    # Add new point
-    history.append(point)
-
-    # Trim to max points
-    if len(history) > MAX_HISTORY_POINTS:
-        history = history[-MAX_HISTORY_POINTS:]
-
-    return history
+    return ok, errors, equity
 
 
-def fetch_data():
-    """Fetch all data from local trading server."""
-    data = {
-        "timestamp": datetime.now().isoformat(),
-        "status": "connected",
-    }
+# ── Git push ──────────────────────────────────────────────────────────────────
 
-    try:
-        # Account
-        r = requests.get(f"{LOCAL_API}/api/account", timeout=5)
-        if r.ok:
-            data["account"] = r.json()
-
-        # Positions
-        r = requests.get(f"{LOCAL_API}/api/positions", timeout=5)
-        if r.ok:
-            data["positions"] = r.json()
-
-        # Orders
-        r = requests.get(f"{LOCAL_API}/api/orders", timeout=5)
-        if r.ok:
-            data["orders"] = r.json()
-
-        # Signals
-        r = requests.get(f"{LOCAL_API}/api/signals", timeout=5)
-        if r.ok:
-            data["signals"] = r.json()
-
-        # Status
-        r = requests.get(f"{LOCAL_API}/api/status", timeout=5)
-        if r.ok:
-            data["system_status"] = r.json()
-
-    except requests.exceptions.RequestException as e:
-        data["status"] = "error"
-        data["error"] = str(e)
-
-    return data
-
-
-def save_and_push(data, history):
-    """Save data to files and push to GitHub."""
-    # Save JSON files
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-    with open(HISTORY_FILE, "w") as f:
-        json.dump(history, f)
-
-    # Git commit and push
+def git_push(timestamp_str):
+    """Stage data/ changes, commit if any, and push. Returns True on success."""
     try:
         subprocess.run(
-            ["git", "add", "data.json", "pnl_history.json"],
-            cwd=REPO_PATH,
-            check=True,
-            capture_output=True
+            ["git", "add", "data/", "index.html"],
+            cwd=REPO_PATH, check=True, capture_output=True,
         )
-
-        subprocess.run(
-            ["git", "commit", "-m", f"Update data {data['timestamp'][:19]}"],
-            cwd=REPO_PATH,
-            check=True,
-            capture_output=True
+        result = subprocess.run(
+            ["git", "commit", "-m", f"Snapshot {timestamp_str}"],
+            cwd=REPO_PATH, capture_output=True,
         )
+        if result.returncode not in (0, 1):  # 1 = nothing to commit
+            stderr = (result.stderr or b"").decode()
+            if "nothing to commit" not in stderr:
+                print(f"  WARN  git commit: {stderr.strip()}")
 
         subprocess.run(
             ["git", "push", "origin", "main"],
-            cwd=REPO_PATH,
-            check=True,
-            capture_output=True
+            cwd=REPO_PATH, check=True, capture_output=True,
         )
-
-        equity = data.get('account', {}).get('equity', 0)
-        pnl = ((float(equity) - STARTING_EQUITY) / STARTING_EQUITY) * 100 if equity else 0
-        spy_pct = history[-1].get("spy_pct") if history else None
-        spy_str = f" | SPY: {spy_pct:+.2f}%" if spy_pct is not None else ""
-        print(f"[{data['timestamp'][:19]}] Synced | PnL: {pnl:+.2f}%{spy_str}")
-        sys.stdout.flush()
         return True
-
     except subprocess.CalledProcessError as e:
-        # No changes to commit is OK
-        if b"nothing to commit" in (e.stdout or b"") + (e.stderr or b""):
-            print(f"[{data['timestamp'][:19]}] No changes")
-            sys.stdout.flush()
+        stderr = (e.stderr or b"").decode()
+        if "nothing to commit" in stderr or "Everything up-to-date" in stderr:
             return True
-        print(f"[{data['timestamp'][:19]}] Git error: {(e.stderr or b'').decode()}")
-        sys.stdout.flush()
+        print(f"  ERR  git push: {stderr.strip()}")
         return False
 
 
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+STARTING_EQUITY = 100_000.0  # Initial paper trading balance
+
+
 def run_once():
-    """Run sync once."""
-    print("Fetching data from local server...")
-    data = fetch_data()
-    history = load_history()
-    spy_price = get_spy_price()
+    now = datetime.now()
+    ts  = now.isoformat()[:19]
 
-    if data["status"] == "connected":
-        equity = data.get('account', {}).get('equity', 0)
-        pnl = ((float(equity) - STARTING_EQUITY) / STARTING_EQUITY) * 100 if equity else 0
-        print(f"Account: ${float(equity):,.2f} (PnL: {pnl:+.2f}%)")
-        print(f"Positions: {len(data.get('positions', []))}")
-        print(f"SPY Price: ${spy_price:.2f}" if spy_price else "SPY: unavailable")
-        print(f"History points: {len(history)}")
+    ok, errors, equity = export_all()
 
-        history = update_history(history, data, spy_price)
-    else:
-        print(f"Error: {data.get('error', 'Unknown')}")
+    pnl_str = ""
+    if equity:
+        pnl = (equity - STARTING_EQUITY) / STARTING_EQUITY * 100
+        pnl_str = f" | equity=${equity:,.0f} ({pnl:+.2f}%)"
 
-    save_and_push(data, history)
+    pushed = git_push(ts)
+    status = "OK" if pushed else "PUSH_ERR"
+    print(f"[{ts}] {status} | {ok}/{len(ENDPOINTS)} endpoints{pnl_str}")
+    sys.stdout.flush()
 
 
 def run_daemon():
-    """Run sync continuously."""
-    print(f"Starting sync daemon (interval: {SYNC_INTERVAL}s)")
-    print(f"Tracking PnL from starting equity: ${STARTING_EQUITY:,}")
-    print("Tracking SPY benchmark")
+    print(f"Shachi sync daemon — interval: {SYNC_INTERVAL}s")
+    print(f"Writing to: {DATA_DIR}")
     print("Press Ctrl+C to stop\n")
-    sys.stdout.flush()
-
-    history = load_history()
-    print(f"Loaded {len(history)} history points")
     sys.stdout.flush()
 
     while True:
         try:
-            data = fetch_data()
-            spy_price = get_spy_price()
-            history = update_history(history, data, spy_price)
-            save_and_push(data, history)
+            run_once()
             time.sleep(SYNC_INTERVAL)
         except KeyboardInterrupt:
-            print("\nStopping sync daemon")
+            print("\nStopped.")
             break
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            time.sleep(SYNC_INTERVAL)
 
 
 if __name__ == "__main__":
