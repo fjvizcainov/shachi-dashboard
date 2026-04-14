@@ -13,7 +13,7 @@ Architecture:
   - Emergency circuit breaker: close all if drawdown > 3% intraday
 
 Iron Laws (enforced in code, not just prompts):
-  1. Max 6 open positions
+  1. Max positions = min(6, regime.max_positions) — regime-adjusted (CRISIS=3, BEAR/HIGH_VOL=4, NEUTRAL=5, BULL=6)
   2. Max 22% capital per position
   3. Never SHORT index ETFs when individual longs are open
   4. Never touch PERMANENT_BLACKLIST tickers
@@ -28,7 +28,7 @@ import time
 import json
 import signal
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeoutError
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -762,8 +762,10 @@ class ClaudeTrader:
                 ).start()
 
         # Too many positions → skip new entry logic only
-        if len(self._open_positions) >= MAX_POSITIONS:
-            logger.debug(f"Max positions ({MAX_POSITIONS}) reached — no new entries this cycle")
+        _regime_now = self.regime_filter.get_regime()
+        _effective_max = min(MAX_POSITIONS, _regime_now.max_positions)
+        if len(self._open_positions) >= _effective_max:
+            logger.debug(f"Max positions ({_effective_max}, regime={_regime_now.name}) reached — no new entries this cycle")
             return
 
         results = self.screener.scan()  # None → dynamic universe (most-actives + CORE)
@@ -827,7 +829,7 @@ class ClaudeTrader:
                 for future in as_completed(futures, timeout=ANALYST_TIMEOUT_SEC):
                     try:
                         ticker, decision, signal = future.result(timeout=ANALYST_TIMEOUT_SEC)
-                    except TimeoutError:
+                    except FuturesTimeoutError:
                         logger.warning(f"Analyst eval timed out after {ANALYST_TIMEOUT_SEC}s — skipping")
                         continue
                     if decision:
@@ -848,9 +850,10 @@ class ClaudeTrader:
                         # see the pre-fill count and allow one extra position.
                         if executed and decision.get("action", "").upper() == "BUY":
                             ticker_key = decision.get("ticker", "")
-                            if ticker_key and ticker_key not in self._open_positions:
-                                self._open_positions[ticker_key] = {"optimistic": True}
-            except TimeoutError:
+                            with self._state_lock:
+                                if ticker_key and ticker_key not in self._open_positions:
+                                    self._open_positions[ticker_key] = {"optimistic": True}
+            except FuturesTimeoutError:
                 logger.warning(f"Parallel eval batch timed out after {ANALYST_TIMEOUT_SEC}s — proceeding to next cycle")
 
     # ─── Scheduled Events ─────────────────────────────────────────────────────

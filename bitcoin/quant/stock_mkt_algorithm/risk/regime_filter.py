@@ -18,6 +18,7 @@ Each regime adjusts:
 import json
 import logging
 import time
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from typing import Optional, Dict
 import sys
@@ -113,11 +114,18 @@ class RegimeFilter:
         # doesn't cause the cold-start default (25.0) to misclassify the regime.
         self._last_vix: Optional[float] = self._load_vix_state()
 
+    _VIX_MAX_AGE_DAYS = 2  # reject state older than 2 trading days
+
     def _load_vix_state(self) -> Optional[float]:
         try:
             data = json.loads(self._VIX_STATE_FILE.read_text())
             vix = float(data["vix"])
-            logger.info(f"Loaded persisted VIX state: {vix:.1f}")
+            saved_at = datetime.fromisoformat(data["saved_at"])
+            age_days = (datetime.now(timezone.utc) - saved_at).total_seconds() / 86400
+            if age_days > self._VIX_MAX_AGE_DAYS:
+                logger.warning(f"Persisted VIX state is {age_days:.1f} days old — discarding, using cold-start default")
+                return None
+            logger.info(f"Loaded persisted VIX state: {vix:.1f} (age {age_days:.1f}d)")
             return vix
         except Exception:
             return None
@@ -125,7 +133,10 @@ class RegimeFilter:
     def _save_vix_state(self, vix: float) -> None:
         try:
             self._VIX_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-            self._VIX_STATE_FILE.write_text(json.dumps({"vix": vix}))
+            self._VIX_STATE_FILE.write_text(json.dumps({
+                "vix": vix,
+                "saved_at": datetime.now(timezone.utc).isoformat(),
+            }))
         except Exception as e:
             logger.warning(f"Could not persist VIX state: {e}")
 
