@@ -45,7 +45,7 @@ from agents.claude_analyst import ClaudeAnalyst
 # Phase 2 — risk modules
 from risk.regime_filter import RegimeFilter
 from risk.position_sizer import PositionSizer
-from risk.bracket_builder import BracketBuilder
+from risk.bracket_builder import BracketBuilder, MAX_TP_PCT
 from risk.trailing_stop import TrailingStopManager
 
 # Phase 3 — learning loop
@@ -74,6 +74,7 @@ DAILY_LOSS_LIMIT_PCT   = 0.03   # -3% → flatten all
 EOD_CLOSE_HOUR         = 15
 EOD_CLOSE_MINUTE       = 55
 SCREENER_INTERVAL_SEC  = 120    # 2 minutes
+ANALYST_TIMEOUT_SEC    = 90     # max per-signal eval; must be < SCREENER_INTERVAL_SEC
 TRAILING_STOP_INTERVAL = 60     # 1 minute
 PREMARKET_HOUR         = 8
 PREMARKET_MINUTE       = 30
@@ -233,6 +234,11 @@ class ClaudeTrader:
         """
         Validate Claude's decision against hard-coded Iron Laws.
         Returns an error string if the trade is blocked, else None.
+
+        Iron Laws:
+          1. Max positions = min(MAX_POSITIONS, regime.max_positions) — regime-adjusted
+          2. Max position size = MAX_POSITION_PCT (22%) of equity
+          3. No index ETF shorts (SPY/QQQ/etc.) when 2+ individual longs open
         """
         action = decision.get("action", "").upper()
         ticker = decision.get("ticker", "")
@@ -280,10 +286,10 @@ class ClaudeTrader:
         """
         if atr_pct and atr_pct > 0:
             stop_dist = price * atr_pct * ATR_STOP_MULTIPLIER
-            tp_dist   = price * atr_pct * ATR_TP_MULTIPLIER
+            tp_dist   = price * min(MAX_TP_PCT, atr_pct * ATR_TP_MULTIPLIER)
         else:
             stop_dist = price * FLAT_STOP_PCT
-            tp_dist   = price * FLAT_TP_PCT
+            tp_dist   = price * FLAT_TP_PCT  # 4% flat — already within MAX_TP_PCT=12%
 
         if side.upper() == "BUY":
             stop_loss   = round(price - stop_dist, 4)
@@ -815,7 +821,6 @@ class ClaudeTrader:
                 self._touch_cooldown(ticker)
                 return ticker, None, signal
 
-        ANALYST_TIMEOUT_SEC = 90  # max per-signal eval (15 iters × ~6s avg); screener cycle is 120s
         with ThreadPoolExecutor(max_workers=len(candidates)) as executor:
             futures = {executor.submit(_eval, s): s for s in candidates}
             try:
@@ -837,7 +842,14 @@ class ClaudeTrader:
                                 f"positions already open (regime={regime.name})"
                             )
                             continue
-                        self._execute_decision(decision, signal_data=signal)
+                        executed = self._execute_decision(decision, signal_data=signal)
+                        # Optimistic increment: Alpaca fill confirmation has latency;
+                        # without this, the next iteration's _sync_positions() may still
+                        # see the pre-fill count and allow one extra position.
+                        if executed and decision.get("action", "").upper() == "BUY":
+                            ticker_key = decision.get("ticker", "")
+                            if ticker_key and ticker_key not in self._open_positions:
+                                self._open_positions[ticker_key] = {"optimistic": True}
             except TimeoutError:
                 logger.warning(f"Parallel eval batch timed out after {ANALYST_TIMEOUT_SEC}s — proceeding to next cycle")
 
