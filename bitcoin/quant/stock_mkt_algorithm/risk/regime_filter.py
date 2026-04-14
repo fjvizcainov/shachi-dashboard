@@ -15,6 +15,7 @@ Each regime adjusts:
   - signal_threshold (screener gate)
 """
 
+import json
 import logging
 import time
 from dataclasses import dataclass
@@ -97,6 +98,8 @@ class RegimeFilter:
     risk parameters. Cached for 5 minutes.
     """
 
+    _VIX_STATE_FILE = Path(__file__).parent.parent / "data" / "vix_last.json"
+
     def __init__(self):
         self._cache_regime: Optional[str] = None
         self._cache_ts: float = 0
@@ -106,8 +109,25 @@ class RegimeFilter:
         self._alpaca_secret = config.alpaca.secret_key
         self._polygon_key   = config.polygon.api_key
 
-        # FIX: persist last known VIX so data gaps don't silently default to 20
-        self._last_vix: Optional[float] = None
+        # Persist last known VIX across restarts so a crash during a VIX spike
+        # doesn't cause the cold-start default (25.0) to misclassify the regime.
+        self._last_vix: Optional[float] = self._load_vix_state()
+
+    def _load_vix_state(self) -> Optional[float]:
+        try:
+            data = json.loads(self._VIX_STATE_FILE.read_text())
+            vix = float(data["vix"])
+            logger.info(f"Loaded persisted VIX state: {vix:.1f}")
+            return vix
+        except Exception:
+            return None
+
+    def _save_vix_state(self, vix: float) -> None:
+        try:
+            self._VIX_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            self._VIX_STATE_FILE.write_text(json.dumps({"vix": vix}))
+        except Exception as e:
+            logger.warning(f"Could not persist VIX state: {e}")
 
     # ─── Data helpers ─────────────────────────────────────────────────────────
 
@@ -166,6 +186,7 @@ class RegimeFilter:
                 if results:
                     vix = float(results[0]["c"])
                     self._last_vix = vix
+                    self._save_vix_state(vix)
                     return vix
         except Exception:
             pass
@@ -187,6 +208,7 @@ class RegimeFilter:
                 if bars:
                     vix = float(bars[0]["c"]) * 1.4  # rough VIX proxy from VIXY
                     self._last_vix = vix
+                    self._save_vix_state(vix)
                     return vix
         except Exception:
             pass
