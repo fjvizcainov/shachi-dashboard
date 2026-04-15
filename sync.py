@@ -110,7 +110,8 @@ def git_push(timestamp_str):
     """Stage data/ changes, commit if any, and push. Returns True on success."""
     try:
         subprocess.run(
-            ["git", "add", "data/", "index.html", "login.html"],
+            ["git", "add", "data/", "index.html", "login.html",
+             "_headers", "_redirects", "404.html"],
             cwd=REPO_PATH, check=True, capture_output=True,
         )
         result = subprocess.run(

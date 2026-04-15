@@ -1,0 +1,9 @@
+# Cloudflare Pages — redirect rules
+# https://developers.cloudflare.com/pages/configuration/redirects/
+#
+# NOTE: Cloudflare Access intercepts all requests before any file is served,
+# so auth is enforced at the CDN layer — no redirects needed for security.
+#
+# Serve index.html at the root (Cloudflare Pages does this by default,
+# but explicit is better than implicit).
+/     /index.html   200

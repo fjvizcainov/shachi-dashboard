@@ -1,0 +1,19 @@
+# Cloudflare Pages — HTTP response headers
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+# ── Security headers — all routes ────────────────────────────────────────────
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: geolocation=(), camera=(), microphone=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data:; connect-src 'self'
+
+# ── Data files — never cache (sync daemon pushes every 60 s) ─────────────────
+/data/*
+  Cache-Control: no-store, max-age=0
+  Pragma: no-cache
+
+# ── HTML pages — no cache so auth guard and content updates are instant ───────
+/*.html
+  Cache-Control: no-cache, max-age=0
