@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claude Trader — Finance Platform</title>
+  <title>Shachi Trader — Finance Platform</title>
+  <!-- Auth guard: redirect to login if no valid session -->
+  <script>
+    (function(){
+      var AUTHORIZED_USER = 'fjvizcainov';
+      if (sessionStorage.getItem('shachi_auth') !== AUTHORIZED_USER) {
+        location.replace('login.html');
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap" rel="stylesheet">
@@ -302,6 +311,7 @@
       <span class="market-status" id="marketStatus">MARKET</span>
       <span id="etClock" class="num">-- : -- : --</span>
       <span id="lastUpdate">--</span>
+      <a href="#" id="signOutBtn" title="Sign out" style="color:var(--faint);font-size:11px;text-decoration:none;padding:3px 8px;border:1px solid var(--border);border-radius:5px;transition:color 0.15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--faint)'">&#x2192; Sign out</a>
     </div>
   </header>
 
@@ -713,6 +723,12 @@ async function refresh() {
 
 refresh();
 setInterval(refresh,60000);
+
+document.getElementById('signOutBtn').addEventListener('click', function(e) {
+  e.preventDefault();
+  sessionStorage.removeItem('shachi_auth');
+  location.replace('login.html');
+});
 </script>
 </body>
 </html>
