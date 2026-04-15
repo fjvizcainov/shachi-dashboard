@@ -10,9 +10,13 @@
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data:; connect-src 'self'
 
 # ── Data files — never cache (sync daemon pushes every 60 s) ─────────────────
+# CORS: allow the Lovable React app on app.shachi.mx to fetch data
 /data/*
   Cache-Control: no-store, max-age=0
   Pragma: no-cache
+  Access-Control-Allow-Origin: https://app.shachi.mx
+  Access-Control-Allow-Methods: GET, OPTIONS
+  Access-Control-Max-Age: 0
 
 # ── HTML pages — no cache so auth guard and content updates are instant ───────
 /*.html
