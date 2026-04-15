@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shachi Trader — Sign In</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #060E18;
+      --sidebar: #092D52;
+      --card:    #0E1924;
+      --card2:   #162635;
+      --border:  #1E3448;
+      --cyan:    #11A3D4;
+      --cyan2:   #0D8AB5;
+      --text:    #E8F0F8;
+      --muted:   #5A7A94;
+      --red:     #E05252;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-wrap { width: 100%; max-width: 400px; padding: 24px; }
+
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 36px; justify-content: center;
+    }
+    .logo-mark {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--sidebar) 100%);
+      border-radius: 10px; display: flex; align-items: center;
+      justify-content: center; font-size: 22px; font-weight: 900;
+      color: #fff; flex-shrink: 0; letter-spacing: -1px;
+    }
+    .logo-title { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .logo-sub   { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 1px; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px;
+    }
+    .card-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .card-sub   { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+    .field { margin-bottom: 18px; }
+    label {
+      display: block; font-size: 12px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px;
+    }
+    input {
+      width: 100%; background: var(--card2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 14px;
+      padding: 11px 14px; outline: none; transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    input:focus { border-color: var(--cyan); }
+    input::placeholder { color: var(--muted); }
+
+    .error-msg {
+      background: rgba(224,82,82,0.12); border: 1px solid rgba(224,82,82,0.35);
+      border-radius: 8px; color: var(--red); font-size: 13px;
+      padding: 11px 14px; margin-bottom: 20px; display: none;
+    }
+    .error-msg.visible { display: block; }
+
+    .btn {
+      width: 100%; background: var(--cyan); color: #fff; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 600; padding: 12px;
+      cursor: pointer; transition: background 0.15s; font-family: inherit;
+      letter-spacing: 0.2px; margin-top: 4px;
+    }
+    .btn:hover { background: var(--cyan2); }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { opacity: 0.6; cursor: default; }
+
+    .footer {
+      text-align: center; font-size: 11px; color: var(--muted); margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="logo">
+    <div class="logo-mark">ST</div>
+    <div>
+      <div class="logo-title">Shachi Trader</div>
+      <div class="logo-sub">Shachi Financial · Paper</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Sign in</div>
+    <div class="card-sub">Access is restricted to authorized users only.</div>
+
+    <div class="error-msg" id="errMsg">Incorrect username or password.</div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               placeholder="Enter your username"
+               autocomplete="username" autofocus required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               placeholder="Enter your password"
+               autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn" id="submitBtn">Sign in</button>
+    </form>
+  </div>
+  <div class="footer">Shachi Financial &copy; 2026 &middot; Authorized access only</div>
+</div>
+
+<script>
+  // Authorized user and password hash (SHA-256 of the actual password)
+  const AUTHORIZED_USER = 'fjvizcainov';
+  const PASSWORD_HASH   = 'd13c95c761e10dcce73c95c747099604d1f2c45659f983c03bd9355bdba2a201';
+
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  // If already authenticated, skip login
+  if (sessionStorage.getItem('shachi_auth') === AUTHORIZED_USER) {
+    location.replace('index.html');
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const err = document.getElementById('errMsg');
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    err.classList.remove('visible');
+
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value;
+    const hash = await sha256(pass);
+
+    if (user === AUTHORIZED_USER && hash === PASSWORD_HASH) {
+      sessionStorage.setItem('shachi_auth', user);
+      location.replace('index.html');
+    } else {
+      err.classList.add('visible');
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+      document.getElementById('password').value = '';
+      document.getElementById('password').focus();
+    }
+  });
+</script>
+</body>
+</html>
