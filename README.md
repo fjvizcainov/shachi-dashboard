@@ -9,7 +9,10 @@ Live Dashboard: [https://fjvizcainov.github.io/shachi-dashboard/](https://fjvizc
 - **Trading Dashboard** (`index.html`) — the main Shachi trading system UI
 - **Device Hub** (`devices/index.html`) — prototype for smart-device & wearable integration
   (coffee, kitchen, fitness). Feasibility research in `devices/API_RESEARCH.md`,
-  backend scaffold in `devices/api/server.py`.
+  shared device drivers in `devices/api/adapters.py`, REST backend in
+  `devices/api/server.py`, and an **MCP server** (`devices/mcp/server.py`) that
+  exposes the same drivers as Claude tools. Reverse-engineering plan for the
+  Joule Oven in `devices/mcp/REVERSE_ENGINEERING.md`.
 
 ## Features
 

@@ -8,175 +8,26 @@ no tienen API viable quedan como stubs honestos (ver ../API_RESEARCH.md).
 """
 
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 import os
 from datetime import datetime
 import logging
 
+try:  # ejecutado como paquete (python -m devices.api.server)
+    from .adapters import ADAPTERS
+except ImportError:  # ejecutado directo (python server.py)
+    from adapters import ADAPTERS
+
+try:
+    from flask_cors import CORS
+except ImportError:  # CORS es opcional para arrancar en local
+    CORS = None
+
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+if CORS:
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Credenciales (variables de entorno, nunca en el front)
-LAMARZOCCO_USER = os.getenv("LAMARZOCCO_USER", "")
-LAMARZOCCO_PASS = os.getenv("LAMARZOCCO_PASS", "")
-GARMIN_USER = os.getenv("GARMIN_USER", "")
-GARMIN_PASS = os.getenv("GARMIN_PASS", "")
-PELOTON_USER = os.getenv("PELOTON_USER", "")
-PELOTON_PASS = os.getenv("PELOTON_PASS", "")
-# Home Assistant como backend local (enchufes inteligentes, plan B del grinder)
-HA_URL = os.getenv("HA_URL", "")          # p. ej. https://mi-ha.duckdns.org
-HA_TOKEN = os.getenv("HA_TOKEN", "")      # long-lived access token
-
-
-# ── Adaptadores ──────────────────────────────────────────────────────────
-
-class DeviceAdapter:
-    """Interfaz comun de todos los dispositivos."""
-
-    id = "base"
-    name = "Base"
-    api_status = "none"  # official | partner | unofficial | none
-
-    def configured(self):
-        return False
-
-    def get_status(self):
-        return {"connected": False, "detail": "no configurado"}
-
-    def execute(self, command, params=None):
-        raise NotImplementedError(f"{self.name}: comando '{command}' no soportado")
-
-
-class LaMarzoccoAdapter(DeviceAdapter):
-    """La Marzocco Linea Mini R via pylamarzocco (API cloud no oficial).
-
-    Comandos previstos: power_on, power_off, set_boiler_temp.
-    Eventos: machine_ready, brewing_started.
-    """
-
-    id = "lamarzocco"
-    name = "La Marzocco Linea Mini R"
-    api_status = "unofficial"
-
-    def configured(self):
-        return bool(LAMARZOCCO_USER and LAMARZOCCO_PASS)
-
-    def get_status(self):
-        if not self.configured():
-            return {"connected": False, "detail": "faltan LAMARZOCCO_USER/PASS"}
-        # TODO: pylamarzocco -> LaMarzoccoCloudClient(...).get_thing_dashboard()
-        return {"connected": True, "detail": "stub: pendiente conectar pylamarzocco"}
-
-    def execute(self, command, params=None):
-        if command in ("power_on", "power_off", "set_boiler_temp"):
-            # TODO: pylamarzocco -> set_power / set_coffee_target_temperature
-            logger.info("LaMarzocco: %s %s", command, params)
-            return {"ok": True, "stub": True}
-        return super().execute(command, params)
-
-
-class GarminAdapter(DeviceAdapter):
-    """Garmin via garminconnect (no oficial) o Health API (partner)."""
-
-    id = "garmin"
-    name = "Garmin"
-    api_status = "partner"
-
-    def configured(self):
-        return bool(GARMIN_USER and GARMIN_PASS)
-
-    def get_status(self):
-        if not self.configured():
-            return {"connected": False, "detail": "faltan GARMIN_USER/PASS"}
-        # TODO: garminconnect -> Garmin(user, pass).login()
-        return {"connected": True, "detail": "stub: pendiente conectar garminconnect"}
-
-    def execute(self, command, params=None):
-        if command in ("read_daily_metrics", "create_workout"):
-            logger.info("Garmin: %s %s", command, params)
-            return {"ok": True, "stub": True}
-        return super().execute(command, params)
-
-
-class PelotonAdapter(DeviceAdapter):
-    """Peloton via API REST no oficial (api.onepeloton.com)."""
-
-    id = "peloton"
-    name = "Peloton"
-    api_status = "unofficial"
-
-    def configured(self):
-        return bool(PELOTON_USER and PELOTON_PASS)
-
-    def get_status(self):
-        if not self.configured():
-            return {"connected": False, "detail": "faltan PELOTON_USER/PASS"}
-        return {"connected": True, "detail": "stub: pendiente conectar pylotoncycle"}
-
-    def execute(self, command, params=None):
-        if command == "read_last_workout":
-            logger.info("Peloton: %s", command)
-            return {"ok": True, "stub": True}
-        return super().execute(command, params)
-
-
-class HomeAssistantAdapter(DeviceAdapter):
-    """Puente generico a Home Assistant: enchufes inteligentes y todo lo que
-    no tenga API directa (plan B del grinder Mahlkoenig)."""
-
-    id = "home_assistant"
-    name = "Home Assistant"
-    api_status = "official"
-
-    def configured(self):
-        return bool(HA_URL and HA_TOKEN)
-
-    def get_status(self):
-        if not self.configured():
-            return {"connected": False, "detail": "faltan HA_URL/HA_TOKEN"}
-        return {"connected": True, "detail": "stub: pendiente ping a /api/"}
-
-    def execute(self, command, params=None):
-        # command = "call_service", params = {domain, service, entity_id}
-        if command == "call_service" and params:
-            # TODO: POST {HA_URL}/api/services/{domain}/{service}
-            #       headers: Authorization: Bearer HA_TOKEN
-            logger.info("HA call_service: %s", params)
-            return {"ok": True, "stub": True}
-        return super().execute(command, params)
-
-
-class StubAdapter(DeviceAdapter):
-    """Dispositivos sin via de integracion todavia (Thermomix, Joule Oven,
-    Tonal escritura, grinder directo). Mantienen contrato y devuelven 501."""
-
-    def __init__(self, id_, name, api_status="none", reason=""):
-        self.id = id_
-        self.name = name
-        self.api_status = api_status
-        self.reason = reason
-
-    def get_status(self):
-        return {"connected": False, "detail": self.reason}
-
-
-ADAPTERS = {a.id: a for a in [
-    LaMarzoccoAdapter(),
-    GarminAdapter(),
-    PelotonAdapter(),
-    HomeAssistantAdapter(),
-    StubAdapter("mahlkonig", "Mahlkoenig X54", "none",
-                "sin API; usar HomeAssistantAdapter con enchufe inteligente"),
-    StubAdapter("thermomix", "Thermomix TM6", "none",
-                "Vorwerk no expone API de dispositivo; solo Cookidoo lectura"),
-    StubAdapter("joule_oven", "Breville Joule Oven", "none",
-                "app Breville+ sin API publica"),
-    StubAdapter("tonal", "Tonal", "unofficial",
-                "GraphQL interna reverseada; solo lectura, pendiente adaptador"),
-]}
 
 
 # ── Motor de reglas (en memoria; persistir en JSON/DB al crecer) ─────────
