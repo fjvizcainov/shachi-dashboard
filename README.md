@@ -4,6 +4,13 @@
 
 Live Dashboard: [https://fjvizcainov.github.io/shachi-dashboard/](https://fjvizcainov.github.io/shachi-dashboard/)
 
+## Modules
+
+- **Trading Dashboard** (`index.html`) — the main Shachi trading system UI
+- **Device Hub** (`devices/index.html`) — prototype for smart-device & wearable integration
+  (coffee, kitchen, fitness). Feasibility research in `devices/API_RESEARCH.md`,
+  backend scaffold in `devices/api/server.py`.
+
 ## Features
 
 - **Real-time Alpaca Integration** - Live positions, orders, and account data

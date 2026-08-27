@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shachi Device Hub — Integración de Dispositivos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design Tokens (Shachi) ──────────────────────────────────────── */
+    :root {
+      --bg:       #020617;
+      --card:     #0F172A;
+      --card2:    #1E293B;
+      --border:   #334155;
+      --text:     #F8FAFC;
+      --muted:    #94A3B8;
+      --faint:    #475569;
+      --green:    #22C55E;
+      --green-d:  #16A34A;
+      --red:      #EF4444;
+      --red-d:    #DC2626;
+      --blue:     #38BDF8;
+      --yellow:   #F59E0B;
+      --purple:   #A78BFA;
+      --radius:   8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h2 { font-size: 11px; font-weight: 600; text-transform: uppercase;
+         letter-spacing: 0.08em; color: var(--muted); }
+
+    .wrapper { max-width: 1400px; margin: 0 auto; padding: 0 16px 48px; }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: var(--bg); z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
+    .logo-icon {
+      width: 28px; height: 28px; background: var(--purple); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 15px;
+    }
+    .version-badge {
+      font-size: 10px; font-weight: 600; color: var(--muted);
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 2px 6px; letter-spacing: 0.05em;
+    }
+    .header-right a { color: var(--blue); text-decoration: none; font-size: 11px; }
+    .header-right a:hover { text-decoration: underline; }
+
+    /* ── KPI Strip ───────────────────────────────────────────────────── */
+    .kpi-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 16px 0;
+    }
+    .kpi {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px;
+    }
+    .kpi .label { font-size: 10px; font-weight: 600; text-transform: uppercase;
+                  letter-spacing: 0.08em; color: var(--muted); }
+    .kpi .value { font-size: 22px; font-weight: 700; margin-top: 2px;
+                  font-variant-numeric: tabular-nums; }
+
+    /* ── Sections ────────────────────────────────────────────────────── */
+    section { margin-top: 24px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+    /* ── Device Grid ─────────────────────────────────────────────────── */
+    .device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .device-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .device-top { display: flex; align-items: flex-start; gap: 10px; }
+    .device-emoji {
+      width: 36px; height: 36px; border-radius: 8px; background: var(--card2);
+      display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+    }
+    .device-name { font-size: 13px; font-weight: 600; }
+    .device-cat  { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+      padding: 2px 7px; border-radius: 4px; border: 1px solid; text-transform: uppercase;
+    }
+    .badge.official   { color: var(--green);  border-color: rgba(34,197,94,.4);  background: rgba(34,197,94,.08); }
+    .badge.unofficial { color: var(--yellow); border-color: rgba(245,158,11,.4); background: rgba(245,158,11,.08); }
+    .badge.none       { color: var(--red);    border-color: rgba(239,68,68,.4);  background: rgba(239,68,68,.08); }
+    .badge.partner    { color: var(--blue);   border-color: rgba(56,189,248,.4); background: rgba(56,189,248,.08); }
+
+    .device-note { font-size: 11px; color: var(--muted); flex: 1; }
+    .device-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
+    .conn { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; }
+    .conn-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .conn.on  { color: var(--green); } .conn.on  .conn-dot { background: var(--green); animation: pulse 2s infinite; }
+    .conn.off { color: var(--faint); } .conn.off .conn-dot { background: var(--faint); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    button {
+      font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer;
+      border-radius: 6px; padding: 5px 12px; border: 1px solid var(--border);
+      background: var(--card2); color: var(--text); transition: background .15s;
+    }
+    button:hover { background: var(--border); }
+    button.primary { background: var(--purple); border-color: var(--purple); color: #0f0a1e; }
+    button.primary:hover { filter: brightness(1.1); }
+    button.danger { color: var(--red); }
+
+    /* ── Automations ─────────────────────────────────────────────────── */
+    .auto-list { display: flex; flex-direction: column; gap: 10px; }
+    .auto-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .auto-info { flex: 1; min-width: 240px; }
+    .auto-name { font-size: 13px; font-weight: 600; }
+    .auto-flow { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .flow-chip {
+      background: var(--card2); border: 1px solid var(--border); border-radius: 4px;
+      padding: 2px 7px; font-size: 10px; color: var(--text);
+    }
+    .flow-arrow { color: var(--faint); }
+    .auto-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* toggle */
+    .toggle { position: relative; width: 34px; height: 18px; background: var(--card2);
+              border: 1px solid var(--border); border-radius: 20px; cursor: pointer; transition: background .15s; }
+    .toggle::after { content:''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
+                     border-radius: 50%; background: var(--muted); transition: all .15s; }
+    .toggle.on { background: rgba(34,197,94,.25); border-color: var(--green-d); }
+    .toggle.on::after { left: 18px; background: var(--green); }
+
+    /* ── Builder ─────────────────────────────────────────────────────── */
+    .builder {
+      background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius);
+      padding: 16px; margin-top: 12px; display: none;
+    }
+    .builder.open { display: block; }
+    .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+    .field label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase;
+                   letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+    .field input, .field select {
+      width: 100%; font-family: inherit; font-size: 12px; color: var(--text);
+      background: var(--card2); border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px;
+    }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--purple); }
+    .builder-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+    /* ── Log ─────────────────────────────────────────────────────────── */
+    .log {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; font-size: 11px; max-height: 260px; overflow-y: auto;
+      font-variant-numeric: tabular-nums;
+    }
+    .log-line { display: flex; gap: 10px; padding: 3px 0; border-bottom: 1px solid rgba(51,65,85,.35); }
+    .log-line:last-child { border-bottom: none; }
+    .log-time { color: var(--faint); flex-shrink: 0; }
+    .log-ok   { color: var(--green); }
+    .log-sim  { color: var(--purple); }
+    .log-warn { color: var(--yellow); }
+    .log-empty { color: var(--faint); font-style: italic; }
+
+    .hint { font-size: 11px; color: var(--faint); margin-top: 8px; }
+    .hint a { color: var(--blue); text-decoration: none; }
+
+    @media (max-width: 720px) {
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      .builder-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">🔌</div>
+        Shachi Device Hub
+        <span class="version-badge">PROTOTIPO v0.1</span>
+      </div>
+      <div class="header-right">
+        <a href="../index.html">← Volver al dashboard de trading</a>
+      </div>
+    </header>
+
+    <div class="kpi-strip">
+      <div class="kpi"><div class="label">Dispositivos</div><div class="value" id="kpiDevices">—</div></div>
+      <div class="kpi"><div class="label">Conectados</div><div class="value" id="kpiConnected" style="color:var(--green)">—</div></div>
+      <div class="kpi"><div class="label">Automatizaciones activas</div><div class="value" id="kpiAutos" style="color:var(--purple)">—</div></div>
+      <div class="kpi"><div class="label">Ejecuciones (sesión)</div><div class="value" id="kpiRuns" style="color:var(--blue)">0</div></div>
+    </div>
+
+    <section>
+      <div class="section-head">
+        <h2>Mis dispositivos</h2>
+        <span class="hint">El badge indica la viabilidad real de integración — ver <a href="API_RESEARCH.md">API_RESEARCH.md</a></span>
+      </div>
+      <div class="device-grid" id="deviceGrid"></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Automatizaciones (recetas)</h2>
+        <button class="primary" id="btnNewAuto">+ Nueva automatización</button>
+      </div>
+      <div class="auto-list" id="autoList"></div>
+
+      <div class="builder" id="builder">
+        <h2>Nueva receta: cuando pase X en un dispositivo → haz Y en otro</h2>
+        <div class="builder-grid">
+          <div class="field">
+            <label>Nombre</label>
+            <input id="fName" placeholder="p. ej. Grind by Sync">
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <span class="hint">Las recetas se guardan en tu navegador (localStorage).</span>
+          </div>
+          <div class="field">
+            <label>Disparador — dispositivo</label>
+            <select id="fTrigDev"></select>
+          </div>
+          <div class="field">
+            <label>Disparador — evento</label>
+            <select id="fTrigEvt"></select>
+          </div>
+          <div class="field">
+            <label>Acción — dispositivo</label>
+            <select id="fActDev"></select>
+          </div>
+          <div class="field">
+            <label>Acción — comando</label>
+            <select id="fActCmd"></select>
+          </div>
+        </div>
+        <div class="builder-foot">
+          <button id="btnCancel">Cancelar</button>
+          <button class="primary" id="btnSave">Guardar receta</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Registro de eventos</h2>
+        <button id="btnClearLog">Limpiar</button>
+      </div>
+      <div class="log" id="log"><div class="log-empty">Sin eventos todavía. Pulsa ▶ en una automatización para simular su ejecución.</div></div>
+      <p class="hint">Modo simulación: sin backend, las ejecuciones son simuladas. Con la API del hub desplegada
+        (<code>devices/api/server.py</code>), los adaptadores reales toman el control donde la integración es viable.</p>
+    </section>
+  </div>
+
+  <script>
+    // ── Catálogo de dispositivos ─────────────────────────────────────────
+    // apiStatus: official | partner | unofficial | none  (ver API_RESEARCH.md)
+    const DEVICES = [
+      {
+        id: 'lamarzocco', emoji: '☕', name: 'La Marzocco Linea Mini R (2023)', cat: 'Café',
+        apiStatus: 'unofficial', connected: true,
+        note: 'API cloud no documentada pero estable (lib pylamarzocco, integración oficial en Home Assistant). Encendido, temperaturas, estado de extracción.',
+        events: ['Inicio de extracción', 'Máquina lista (temperatura OK)', 'Encendido programado'],
+        commands: ['Encender', 'Apagar', 'Fijar temperatura de caldera']
+      },
+      {
+        id: 'mahlkonig', emoji: '⚙️', name: 'Mahlkönig X54 (grinder)', cat: 'Café',
+        apiStatus: 'none', connected: false,
+        note: 'App propia pero sin API pública ni ingeniería inversa madura. Plan B: enchufe inteligente + disco de dosis, o control por atajos.',
+        events: ['Molienda terminada (vía enchufe inteligente)'],
+        commands: ['Activar molienda (vía enchufe inteligente)']
+      },
+      {
+        id: 'thermomix', emoji: '🍲', name: 'Thermomix TM6', cat: 'Cocina',
+        apiStatus: 'none', connected: false,
+        note: 'Vorwerk no expone API del dispositivo. Existen wrappers no oficiales de Cookidoo (recetas/lista de compra), pero no control del equipo.',
+        events: ['Paso de receta completado (manual/Cookidoo)'],
+        commands: ['— sin control remoto posible —']
+      },
+      {
+        id: 'joule_oven', emoji: '🔥', name: 'Breville Joule Oven Air Fryer Pro', cat: 'Cocina',
+        apiStatus: 'none', connected: false,
+        note: 'App Breville+ sin API pública. El Joule sous-vide original sí fue reverseado; el horno todavía no tiene librería comunitaria fiable.',
+        events: ['Precalentado listo (manual)'],
+        commands: ['Precalentar (pendiente de reverse engineering)']
+      },
+      {
+        id: 'tonal', emoji: '🏋️', name: 'Tonal', cat: 'Fitness',
+        apiStatus: 'unofficial', connected: true,
+        note: 'Sin API pública; API GraphQL interna reverseada por la comunidad (lectura de entrenamientos). Exporta a Apple Health.',
+        events: ['Entrenamiento completado', 'Nuevo PR de fuerza'],
+        commands: ['Leer último entrenamiento']
+      },
+      {
+        id: 'peloton', emoji: '🚴', name: 'Peloton', cat: 'Fitness',
+        apiStatus: 'unofficial', connected: true,
+        note: 'API REST no oficial muy documentada por la comunidad (api.onepeloton.com): entrenamientos, métricas, historial.',
+        events: ['Clase completada', 'Inicio de clase'],
+        commands: ['Leer métricas de la última clase']
+      },
+      {
+        id: 'garmin', emoji: '⌚', name: 'Garmin (reloj)', cat: 'Wearable / Salud',
+        apiStatus: 'partner', connected: true,
+        note: 'API oficial (Garmin Connect Developer Program, requiere aprobación) o lib no oficial garminconnect. HR, sueño, actividades, body battery.',
+        events: ['Actividad sincronizada', 'Frecuencia cardiaca alta', 'Despertar detectado'],
+        commands: ['Leer métricas del día', 'Crear entrenamiento en Connect']
+      },
+    ];
+
+    const STATUS_LABEL = {
+      official:   { txt: 'API oficial',    cls: 'official'   },
+      partner:    { txt: 'API partner',    cls: 'partner'    },
+      unofficial: { txt: 'API no oficial', cls: 'unofficial' },
+      none:       { txt: 'Sin API',        cls: 'none'       },
+    };
+
+    // ── Recetas de ejemplo (las tuyas) ───────────────────────────────────
+    const SEED_AUTOS = [
+      { id: 'a1', name: 'Grind by Sync ☕',
+        trigDev: 'lamarzocco', trigEvt: 'Máquina lista (temperatura OK)',
+        actDev: 'mahlkonig', actCmd: 'Activar molienda (vía enchufe inteligente)', enabled: true },
+      { id: 'a2', name: 'Handoff Thermomix → Joule Oven',
+        trigDev: 'thermomix', trigEvt: 'Paso de receta completado (manual/Cookidoo)',
+        actDev: 'joule_oven', actCmd: 'Precalentar (pendiente de reverse engineering)', enabled: false },
+      { id: 'a3', name: 'Workout Sync: Tonal + Peloton → Garmin',
+        trigDev: 'tonal', trigEvt: 'Entrenamiento completado',
+        actDev: 'garmin', actCmd: 'Crear entrenamiento en Connect', enabled: true },
+      { id: 'a4', name: 'Café al despertar',
+        trigDev: 'garmin', trigEvt: 'Despertar detectado',
+        actDev: 'lamarzocco', actCmd: 'Encender', enabled: true },
+    ];
+
+    const LS_KEY = 'shachi_device_hub_autos_v1';
+    let autos = load();
+    let runCount = 0;
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) { /* almacenamiento no disponible */ }
+      return SEED_AUTOS.map(a => ({ ...a }));
+    }
+    function save() {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(autos)); } catch (e) { /* ignorar */ }
+    }
+    const byId = id => DEVICES.find(d => d.id === id);
+
+    // ── Render dispositivos ──────────────────────────────────────────────
+    function renderDevices() {
+      const grid = document.getElementById('deviceGrid');
+      grid.innerHTML = DEVICES.map(d => {
+        const s = STATUS_LABEL[d.apiStatus];
+        return `
+        <div class="device-card">
+          <div class="device-top">
+            <div class="device-emoji">${d.emoji}</div>
+            <div style="flex:1">
+              <div class="device-name">${d.name}</div>
+              <div class="device-cat">${d.cat}</div>
+            </div>
+            <span class="badge ${s.cls}">${s.txt}</span>
+          </div>
+          <div class="device-note">${d.note}</div>
+          <div class="device-foot">
+            <span class="conn ${d.connected ? 'on' : 'off'}"><span class="conn-dot"></span>${d.connected ? 'Conectado (sim)' : 'Sin conexión'}</span>
+          </div>
+        </div>`;
+      }).join('');
+      document.getElementById('kpiDevices').textContent = DEVICES.length;
+      document.getElementById('kpiConnected').textContent = DEVICES.filter(d => d.connected).length;
+    }
+
+    // ── Render automatizaciones ──────────────────────────────────────────
+    function renderAutos() {
+      const list = document.getElementById('autoList');
+      if (!autos.length) {
+        list.innerHTML = '<div class="hint">No hay recetas. Crea la primera con “+ Nueva automatización”.</div>';
+      } else {
+        list.innerHTML = autos.map(a => {
+          const t = byId(a.trigDev), x = byId(a.actDev);
+          return `
+          <div class="auto-card">
+            <div class="auto-info">
+              <div class="auto-name">${a.name}</div>
+              <div class="auto-flow">
+                <span class="flow-chip">${t ? t.emoji + ' ' + t.name : a.trigDev}</span>
+                <span>${a.trigEvt}</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-chip">${x ? x.emoji + ' ' + x.name : a.actDev}</span>
+                <span>${a.actCmd}</span>
+              </div>
+            </div>
+            <div class="auto-actions">
+              <button data-run="${a.id}" title="Simular ejecución">▶ Simular</button>
+              <div class="toggle ${a.enabled ? 'on' : ''}" data-toggle="${a.id}" title="Activar/desactivar"></div>
+              <button class="danger" data-del="${a.id}" title="Eliminar">✕</button>
+            </div>
+          </div>`;
+        }).join('');
+      }
+      document.getElementById('kpiAutos').textContent = autos.filter(a => a.enabled).length;
+    }
+
+    // ── Log ──────────────────────────────────────────────────────────────
+    function log(msg, cls = '') {
+      const el = document.getElementById('log');
+      const empty = el.querySelector('.log-empty');
+      if (empty) empty.remove();
+      const t = new Date().toLocaleTimeString('es-ES', { hour12: false });
+      el.insertAdjacentHTML('afterbegin',
+        `<div class="log-line"><span class="log-time">${t}</span><span class="${cls}">${msg}</span></div>`);
+    }
+
+    function simulate(a) {
+      const t = byId(a.trigDev), x = byId(a.actDev);
+      if (!a.enabled) { log(`“${a.name}” está desactivada — actívala para ejecutarla.`, 'log-warn'); return; }
+      log(`⚡ Disparador: ${t.emoji} ${t.name} → “${a.trigEvt}”`, 'log-sim');
+      const feasible = x.apiStatus !== 'none' || /enchufe/i.test(a.actCmd);
+      setTimeout(() => {
+        if (feasible) {
+          log(`✓ Acción ejecutada: ${x.emoji} ${x.name} → “${a.actCmd}”`, 'log-ok');
+        } else {
+          log(`⚠ ${x.name} no tiene vía de integración todavía (“${a.actCmd}”). Ver API_RESEARCH.md para el plan B.`, 'log-warn');
+        }
+        runCount++;
+        document.getElementById('kpiRuns').textContent = runCount;
+      }, 600);
+    }
+
+    // ── Builder ──────────────────────────────────────────────────────────
+    const builder = document.getElementById('builder');
+    const fTrigDev = document.getElementById('fTrigDev');
+    const fTrigEvt = document.getElementById('fTrigEvt');
+    const fActDev  = document.getElementById('fActDev');
+    const fActCmd  = document.getElementById('fActCmd');
+
+    function fillDeviceSelect(sel) {
+      sel.innerHTML = DEVICES.map(d => `<option value="${d.id}">${d.emoji} ${d.name}</option>`).join('');
+    }
+    function fillEvt() {
+      const d = byId(fTrigDev.value);
+      fTrigEvt.innerHTML = d.events.map(e => `<option>${e}</option>`).join('');
+    }
+    function fillCmd() {
+      const d = byId(fActDev.value);
+      fActCmd.innerHTML = d.commands.map(c => `<option>${c}</option>`).join('');
+    }
+
+    fillDeviceSelect(fTrigDev); fillDeviceSelect(fActDev);
+    fTrigDev.addEventListener('change', fillEvt);
+    fActDev.addEventListener('change', fillCmd);
+    fillEvt(); fillCmd();
+
+    document.getElementById('btnNewAuto').addEventListener('click', () => {
+      builder.classList.toggle('open');
+      document.getElementById('fName').value = '';
+    });
+    document.getElementById('btnCancel').addEventListener('click', () => builder.classList.remove('open'));
+    document.getElementById('btnSave').addEventListener('click', () => {
+      const name = document.getElementById('fName').value.trim() || 'Receta sin nombre';
+      autos.push({
+        id: 'a' + Date.now(),
+        name,
+        trigDev: fTrigDev.value, trigEvt: fTrigEvt.value,
+        actDev: fActDev.value,  actCmd: fActCmd.value,
+        enabled: true,
+      });
+      save(); renderAutos();
+      builder.classList.remove('open');
+      log(`＋ Receta creada: “${name}”`, 'log-ok');
+    });
+
+    document.getElementById('autoList').addEventListener('click', (ev) => {
+      const run = ev.target.closest('[data-run]');
+      const tog = ev.target.closest('[data-toggle]');
+      const del = ev.target.closest('[data-del]');
+      if (run) simulate(autos.find(a => a.id === run.dataset.run));
+      if (tog) {
+        const a = autos.find(x => x.id === tog.dataset.toggle);
+        a.enabled = !a.enabled; save(); renderAutos();
+      }
+      if (del) {
+        const a = autos.find(x => x.id === del.dataset.del);
+        autos = autos.filter(x => x.id !== del.dataset.del);
+        save(); renderAutos();
+        log(`✕ Receta eliminada: “${a.name}”`, 'log-warn');
+      }
+    });
+
+    document.getElementById('btnClearLog').addEventListener('click', () => {
+      document.getElementById('log').innerHTML = '<div class="log-empty">Registro vacío.</div>';
+    });
+
+    renderDevices();
+    renderAutos();
+  </script>
+</body>
+</html>
