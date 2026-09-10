@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd LaunchAgent para el gateway móvil de Shachi.
+  Los marcadores __REPO_ROOT__, __PYTHON__, __PORT__ y __LOG_DIR__ los rellena
+  mobile/setup-tailscale-mac.sh al instalarlo en ~/Library/LaunchAgents/.
+  El gateway escucha SOLO en 127.0.0.1; la salida al celular es vía tailscale serve.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.shachi.mobile-gateway</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__PYTHON__</string>
+    <string>__REPO_ROOT__/mobile/serve.py</string>
+    <string>--port</string>
+    <string>__PORT__</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- Servidor de trading local al que se hace proxy /api/* -->
+    <key>SHACHI_API</key>
+    <string>http://127.0.0.1:5002</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>__REPO_ROOT__</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+
+  <key>StandardOutPath</key>
+  <string>__LOG_DIR__/gateway.log</string>
+  <key>StandardErrorPath</key>
+  <string>__LOG_DIR__/gateway.err</string>
+</dict>
+</plist>

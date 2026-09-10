@@ -127,6 +127,18 @@ python server.py
 # Dashboard will connect to localhost:5002
 ```
 
+## Mobile Access (secure tunnel)
+
+To use the dashboard from your phone while the system keeps running locally,
+see **[docs/MOBILE-ACCESS.md](docs/MOBILE-ACCESS.md)**. Summary:
+
+- Tailscale (WireGuard) tunnel between the Mac mini and the phone. No ports
+  opened, nothing exposed to the public internet.
+- `mobile/serve.py` is a loopback-only gateway (static dashboard + read-only
+  `/api/*` proxy) published inside the tailnet with `tailscale serve` over HTTPS.
+- One-time setup on the Mac mini: `mobile/setup-tailscale-mac.sh`
+- Security check anytime: `mobile/check-access.sh`
+
 ## Realistic Expectations
 
 | Metric | Range |

@@ -1,0 +1,34 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Política de acceso (ACL) de la tailnet para Shachi — MÍNIMO PRIVILEGIO
+//
+// Pégala en https://login.tailscale.com/admin/acls
+//
+// Efecto:
+//   • Tu celular (y cualquier otro dispositivo tuyo) solo puede hablar con la
+//     Mac mini en el puerto 443 (el HTTPS de `tailscale serve`).
+//   • Nada más: ni SSH, ni el puerto 5002 directo, ni el 8787, ni otros nodos.
+//   • Aunque alguien lograra meter un dispositivo a tu tailnet, la ACL no le
+//     abre nada más.
+//
+// Ajusta el correo si tu cuenta de Tailscale usa otro.
+// ─────────────────────────────────────────────────────────────────────────────
+{
+  "tagOwners": {
+    "tag:shachi-server": ["autogroup:admin"],
+  },
+
+  "acls": [
+    // Único flujo permitido: mis dispositivos → Mac mini :443
+    {
+      "action": "accept",
+      "src":    ["autogroup:member"],
+      "dst":    ["tag:shachi-server:443"],
+    },
+  ],
+
+  // Tailscale SSH: deshabilitado (no hay reglas "ssh"). El acceso es solo web.
+
+  // Funnel (exposición pública) SOLO se habilita si existe un nodeAttrs con
+  // "attr": ["funnel"]. Al no declararlo, ningún nodo puede abrir Funnel.
+  // Llaves de nodo: acórtalas en Admin → Machines → Key expiry (p. ej. 90 días).
+}
